@@ -2,6 +2,17 @@
 
 namespace App\Providers;
 
+use App\Models\Admin;
+use App\Services\Auth\OtpService;
+use App\Services\Auth\OtpServiceInterface;
+use App\Services\Auth\PhoneNumberNormalizer;
+use App\Services\Sms\LogSmsSender;
+use App\Services\Sms\NullSmsSender;
+use App\Services\Sms\SmsSenderInterface;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -11,7 +22,18 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(PhoneNumberNormalizer::class);
+
+        $this->app->singleton(SmsSenderInterface::class, function () {
+            $driver = env('SMS_DRIVER', 'log');
+
+            return match ($driver) {
+                'null' => new NullSmsSender,
+                default => new LogSmsSender,
+            };
+        });
+
+        $this->app->singleton(OtpServiceInterface::class, OtpService::class);
     }
 
     /**
@@ -19,6 +41,53 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        $this->configureRateLimiting();
+        $this->configureSuperAdminGate();
+    }
+
+    private function configureRateLimiting(): void
+    {
+        // Customer OTP generation: 3 requests per 10 minutes per phone + IP
+        RateLimiter::for('customer-otp-request', function (Request $request) {
+            $phone = (string) $request->input('phone', '');
+
+            return Limit::perMinutes(10, 3)->by($phone.'|'.$request->ip());
+        });
+
+        // Customer OTP verification: 5 attempts per 5 minutes per phone + IP
+        RateLimiter::for('customer-otp-verify', function (Request $request) {
+            $phone = (string) $request->input('phone', '');
+
+            return Limit::perMinutes(5, 5)->by($phone.'|'.$request->ip());
+        });
+
+        // Admin login: 5 attempts per minute per email + IP
+        RateLimiter::for('admin-login', function (Request $request) {
+            $email = (string) $request->input('email', '');
+
+            return Limit::perMinute(5)->by($email.'|'.$request->ip());
+        });
+
+        // Admin 2FA: 5 attempts per 5 minutes per pending admin ID + IP
+        RateLimiter::for('admin-2fa', function (Request $request) {
+            $adminId = $request->session()->get('admin_2fa_pending.admin_id', 'unknown');
+
+            return Limit::perMinutes(5, 5)->by($adminId.'|'.$request->ip());
+        });
+
+        // Admin password reset: 3 attempts per 15 minutes per email + IP
+        RateLimiter::for('admin-password-reset', function (Request $request) {
+            $email = (string) $request->input('email', '');
+
+            return Limit::perMinutes(15, 3)->by($email.'|'.$request->ip());
+        });
+    }
+
+    private function configureSuperAdminGate(): void
+    {
+        // Implicitly grant 'Super Admin' role all permissions
+        Gate::before(function ($user, $ability) {
+            return ($user instanceof Admin && $user->hasRole('Super Admin')) ? true : null;
+        });
     }
 }

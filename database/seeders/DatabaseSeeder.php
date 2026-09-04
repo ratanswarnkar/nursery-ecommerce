@@ -63,5 +63,10 @@ class DatabaseSeeder extends Seeder
                 'is_default' => true,
             ]
         );
+
+        $this->call([
+            AdminRbacSeeder::class,
+            DevelopmentAdminSeeder::class,
+        ]);
     }
 }

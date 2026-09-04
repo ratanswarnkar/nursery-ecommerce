@@ -13,6 +13,7 @@ class AuditLog extends Model
 
     protected $fillable = [
         'admin_id',
+        'customer_id',
         'action',
         'auditable_type',
         'auditable_id',
@@ -33,6 +34,11 @@ class AuditLog extends Model
     public function admin(): BelongsTo
     {
         return $this->belongsTo(Admin::class);
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
     }
 
     public function auditable(): MorphTo
