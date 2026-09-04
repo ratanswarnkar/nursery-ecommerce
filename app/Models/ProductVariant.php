@@ -85,4 +85,9 @@ class ProductVariant extends Model
     {
         return $this->hasMany(TenderItem::class);
     }
+
+    public function images(): HasMany
+    {
+        return $this->hasMany(ProductImage::class, 'product_variant_id')->orderBy('sort_order');
+    }
 }

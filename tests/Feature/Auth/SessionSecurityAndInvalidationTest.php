@@ -2,10 +2,13 @@
 
 use App\Models\Admin;
 use App\Models\Customer;
+use Database\Seeders\AdminRbacSeeder;
 use Illuminate\Support\Facades\Auth;
 
 test('ValidateSessionVersion denies access when token version does not match database', function () {
+    $this->seed(AdminRbacSeeder::class);
     $admin = Admin::factory()->create(['auth_token_version' => 1]);
+    $admin->assignRole('Super Admin');
 
     // Admin is logged in with token version 1
     $this->actingAs($admin, 'admin');
