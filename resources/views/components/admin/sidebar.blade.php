@@ -44,14 +44,26 @@
             </a>
         @endcan
 
+        <div class="nav-section-title">Inventory & Warehouses</div>
+
+        @can('inventory.view', 'admin')
+            <a href="{{ route('admin.inventory.index') }}" class="nav-item {{ request()->routeIs('admin.inventory.*') ? 'active' : '' }}">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                <span>Inventory</span>
+            </a>
+        @endcan
+
+        @can('warehouses.view', 'admin')
+            <a href="{{ route('admin.warehouses.index') }}" class="nav-item {{ request()->routeIs('admin.warehouses.*') ? 'active' : '' }}">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                <span>Warehouses</span>
+            </a>
+        @endcan
+
         <div class="nav-section-title">Future Domains</div>
-        <div class="nav-item" style="opacity: 0.5; cursor: not-allowed;" title="Orders & Inventory will be built in Phase 4">
+        <div class="nav-item" style="opacity: 0.5; cursor: not-allowed;" title="Orders will be built in Phase 5">
             <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
-            <span>Orders (Phase 4)</span>
-        </div>
-        <div class="nav-item" style="opacity: 0.5; cursor: not-allowed;" title="Inventory module will be built in Phase 4">
-            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-            <span>Inventory (Phase 4)</span>
+            <span>Orders (Phase 5)</span>
         </div>
     </nav>
 </aside>

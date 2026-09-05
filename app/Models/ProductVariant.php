@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class ProductVariant extends Model
 {
@@ -89,5 +90,15 @@ class ProductVariant extends Model
     public function images(): HasMany
     {
         return $this->hasMany(ProductImage::class, 'product_variant_id')->orderBy('sort_order');
+    }
+
+    /**
+     * Get total available stock across all active warehouses.
+     */
+    public function getAvailableStockAttribute(): int
+    {
+        return (int) $this->inventories()
+            ->whereHas('warehouse', fn ($q) => $q->where('is_active', true))
+            ->sum(DB::raw('GREATEST(0, quantity - reserved_quantity)'));
     }
 }

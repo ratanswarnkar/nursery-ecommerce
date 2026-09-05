@@ -5,13 +5,16 @@ use App\Http\Controllers\Admin\AttributeValueController;
 use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\InventoryController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProductImageController;
 use App\Http\Controllers\Admin\ProductVariantController;
+use App\Http\Controllers\Admin\WarehouseController;
 use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\Auth\AdminPasswordResetController;
 use App\Http\Controllers\Auth\AdminTwoFactorController;
 use App\Http\Controllers\Auth\CustomerAuthController;
+use App\Http\Controllers\Cart\CartController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -32,6 +35,13 @@ Route::middleware('web')->group(function () {
         ->middleware('throttle:customer-otp-verify')
         ->name('customer.otp.verify');
     Route::post('/logout', [CustomerAuthController::class, 'logout'])->name('customer.logout');
+
+    // Cart Routes (Guest & Customer)
+    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+    Route::post('/cart/items', [CartController::class, 'store'])->name('cart.items.store');
+    Route::put('/cart/items/{cartItem}', [CartController::class, 'update'])->name('cart.items.update');
+    Route::delete('/cart/items/{cartItem}', [CartController::class, 'destroy'])->name('cart.items.destroy');
+    Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
 
     // Customer Protected Test Area
     Route::middleware(['auth:customer', 'ensure.active:customer', 'verify.session.version:customer'])->group(function () {
@@ -151,6 +161,20 @@ Route::middleware('web')->prefix('admin')->name('admin.')->group(function () {
             Route::post('/images/reorder', [ProductImageController::class, 'reorder'])->middleware('permission:products.update,admin')->name('reorder');
             Route::delete('/images/{image}', [ProductImageController::class, 'destroy'])->middleware('permission:products.delete,admin')->name('destroy');
         });
+
+        // Warehouses
+        Route::get('/warehouses', [WarehouseController::class, 'index'])->middleware('permission:warehouses.view,admin')->name('warehouses.index');
+        Route::get('/warehouses/create', [WarehouseController::class, 'create'])->middleware('permission:warehouses.create,admin')->name('warehouses.create');
+        Route::post('/warehouses', [WarehouseController::class, 'store'])->middleware('permission:warehouses.create,admin')->name('warehouses.store');
+        Route::get('/warehouses/{warehouse}/edit', [WarehouseController::class, 'edit'])->middleware('permission:warehouses.update,admin')->name('warehouses.edit');
+        Route::put('/warehouses/{warehouse}', [WarehouseController::class, 'update'])->middleware('permission:warehouses.update,admin')->name('warehouses.update');
+        Route::delete('/warehouses/{warehouse}', [WarehouseController::class, 'destroy'])->middleware('permission:warehouses.delete,admin')->name('warehouses.destroy');
+        Route::post('/warehouses/{warehouse}/toggle-status', [WarehouseController::class, 'toggleStatus'])->middleware('permission:warehouses.update,admin')->name('warehouses.toggle-status');
+
+        // Inventory
+        Route::get('/inventory', [InventoryController::class, 'index'])->middleware('permission:inventory.view,admin')->name('inventory.index');
+        Route::post('/inventory/adjust', [InventoryController::class, 'adjust'])->middleware('permission:inventory.manage,admin')->name('inventory.adjust');
+        Route::get('/inventory/movements', [InventoryController::class, 'movements'])->middleware('permission:inventory.view,admin')->name('inventory.movements');
 
         // Granular RBAC Demonstration Routes
         Route::get('/test/orders-view', function () {

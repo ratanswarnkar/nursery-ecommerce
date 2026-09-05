@@ -54,6 +54,10 @@ class AdminRbacSeeder extends Seeder
             'orders.cancel',
             'inventory.view',
             'inventory.manage',
+            'warehouses.view',
+            'warehouses.create',
+            'warehouses.update',
+            'warehouses.delete',
 
             // Financial & Commercial
             'payments.view',
@@ -116,6 +120,7 @@ class AdminRbacSeeder extends Seeder
             'attributes.view', 'attributes.create', 'attributes.update', 'attributes.delete',
             'orders.view', 'orders.create', 'orders.update', 'orders.cancel',
             'inventory.view', 'inventory.manage',
+            'warehouses.view', 'warehouses.create', 'warehouses.update', 'warehouses.delete',
             'payments.view', 'payments.manage', 'refunds.manage',
             'coupons.view', 'coupons.manage',
             'cms.view', 'cms.manage',
@@ -136,6 +141,7 @@ class AdminRbacSeeder extends Seeder
             'attributes.view',
             'orders.view', 'orders.update',
             'inventory.view', 'inventory.manage',
+            'warehouses.view',
             'coupons.view',
             'tenders.view',
         ];
@@ -152,6 +158,7 @@ class AdminRbacSeeder extends Seeder
             'attributes.view',
             'orders.view',
             'inventory.view',
+            'warehouses.view',
         ];
         $staffRole->syncPermissions(Permission::where('guard_name', $guard)->whereIn('name', $staffPermissions)->get());
     }

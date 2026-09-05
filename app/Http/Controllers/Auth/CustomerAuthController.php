@@ -9,6 +9,7 @@ use App\Models\Customer;
 use App\Services\Audit\AuditLogger;
 use App\Services\Auth\OtpServiceInterface;
 use App\Services\Auth\PhoneNumberNormalizer;
+use App\Services\Cart\CartMergeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,7 +22,8 @@ class CustomerAuthController extends Controller
     public function __construct(
         private PhoneNumberNormalizer $phoneNormalizer,
         private OtpServiceInterface $otpService,
-        private AuditLogger $auditLogger
+        private AuditLogger $auditLogger,
+        private CartMergeService $cartMergeService
     ) {}
 
     public function showLoginForm(): View
@@ -97,11 +99,18 @@ class CustomerAuthController extends Controller
             ]);
         }
 
+        // Capture guest session ID and cart ID before session regeneration to ensure cart merge works
+        $guestSessionId = $request->session()->getId();
+        $guestCartId = $request->session()->get('cart_id');
+
         // Complete customer authentication
         Auth::guard('customer')->login($customer);
 
         $request->session()->regenerate();
         $request->session()->put('customer_auth_token_version', $customer->auth_token_version);
+
+        // Merge guest cart into customer cart transactionally
+        $this->cartMergeService->mergeGuestCartIntoCustomerCart($guestSessionId, $customer, $guestCartId);
 
         $this->auditLogger->logCustomerEvent('customer.login.success', $customer, [
             'phone' => $normalizedPhone,
