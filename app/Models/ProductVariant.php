@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -100,5 +101,22 @@ class ProductVariant extends Model
         return (int) $this->inventories()
             ->whereHas('warehouse', fn ($q) => $q->where('is_active', true))
             ->sum(DB::raw('GREATEST(0, quantity - reserved_quantity)'));
+    }
+
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function getDiscountPercentageAttribute(): ?int
+    {
+        if ($this->compare_at_price && bccomp((string) $this->compare_at_price, (string) $this->price, 2) > 0) {
+            $diff = bcsub((string) $this->compare_at_price, (string) $this->price, 2);
+            $ratio = bcdiv($diff, (string) $this->compare_at_price, 4);
+
+            return (int) round((float) bcmul($ratio, '100', 2));
+        }
+
+        return null;
     }
 }

@@ -125,4 +125,14 @@ class CategoryHierarchyService
 
         return $descendants;
     }
+
+    /**
+     * Get all active descendant category IDs for a given parent category.
+     */
+    public function getActiveDescendantCategoryIds(int $parentId): array
+    {
+        $allCategories = Category::where('is_active', true)->get(['id', 'parent_id', 'is_active']);
+
+        return $this->collectDescendantIds($allCategories, $parentId);
+    }
 }

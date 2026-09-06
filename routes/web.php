@@ -15,11 +15,26 @@ use App\Http\Controllers\Auth\AdminPasswordResetController;
 use App\Http\Controllers\Auth\AdminTwoFactorController;
 use App\Http\Controllers\Auth\CustomerAuthController;
 use App\Http\Controllers\Cart\CartController;
+use App\Http\Controllers\Customer\AccountDashboardController;
+use App\Http\Controllers\Customer\AddressController;
+use App\Http\Controllers\Customer\ProfileController;
+use App\Http\Controllers\Storefront\BrandPageController;
+use App\Http\Controllers\Storefront\CategoryPageController;
+use App\Http\Controllers\Storefront\HomeController;
+use App\Http\Controllers\Storefront\ProductDetailController;
+use App\Http\Controllers\Storefront\ShopController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+/*
+|--------------------------------------------------------------------------
+| Public Storefront Routes
+|--------------------------------------------------------------------------
+*/
+Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/shop', [ShopController::class, 'index'])->name('shop.index');
+Route::get('/categories/{category:slug}', [CategoryPageController::class, 'show'])->name('categories.show');
+Route::get('/brands/{brand:slug}', [BrandPageController::class, 'show'])->name('brands.show');
+Route::get('/products/{product:slug}', [ProductDetailController::class, 'show'])->name('products.show');
 
 /*
 |--------------------------------------------------------------------------
@@ -43,15 +58,21 @@ Route::middleware('web')->group(function () {
     Route::delete('/cart/items/{cartItem}', [CartController::class, 'destroy'])->name('cart.items.destroy');
     Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
 
-    // Customer Protected Test Area
+    // Customer Protected Account Portal
     Route::middleware(['auth:customer', 'ensure.active:customer', 'verify.session.version:customer'])->group(function () {
-        Route::get('/account', function () {
-            return response()->json([
-                'status' => 'authenticated',
-                'guard' => 'customer',
-                'customer' => auth('customer')->user(),
-            ]);
-        })->name('customer.home');
+        Route::get('/account', [AccountDashboardController::class, 'index'])->name('customer.home');
+        Route::get('/account/dashboard', [AccountDashboardController::class, 'index'])->name('account.dashboard');
+
+        // Customer Profile
+        Route::get('/account/profile', [ProfileController::class, 'edit'])->name('account.profile');
+        Route::put('/account/profile', [ProfileController::class, 'update'])->name('account.profile.update');
+
+        // Customer Addresses (IDOR-Protected)
+        Route::get('/account/addresses', [AddressController::class, 'index'])->name('account.addresses.index');
+        Route::post('/account/addresses', [AddressController::class, 'store'])->name('account.addresses.store');
+        Route::put('/account/addresses/{address}', [AddressController::class, 'update'])->name('account.addresses.update');
+        Route::delete('/account/addresses/{address}', [AddressController::class, 'destroy'])->name('account.addresses.destroy');
+        Route::post('/account/addresses/{address}/set-default', [AddressController::class, 'setDefault'])->name('account.addresses.set-default');
     });
 });
 
