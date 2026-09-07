@@ -23,6 +23,18 @@
     </div>
 </div>
 
+@if(session('success'))
+    <div style="background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 0.75rem 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; font-size: 0.875rem;">
+        {{ session('success') }}
+    </div>
+@endif
+
+@if(session('error'))
+    <div style="background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 0.75rem 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; font-size: 0.875rem;">
+        {{ session('error') }}
+    </div>
+@endif
+
 <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
     <!-- Left Column: Items & Totals -->
     <div style="display: flex; flex-direction: column; gap: 1.5rem;">
@@ -215,6 +227,78 @@
                     <span style="font-weight: 600;">{{ $order->shipping_status->value }}</span>
                 </div>
             </div>
+        </div>
+
+        <!-- Order Lifecycle Management -->
+        <div class="card">
+            <h3 style="font-size: 0.875rem; font-weight: 700; margin-bottom: 0.75rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.5rem;">
+                Order Lifecycle Management
+            </h3>
+
+            @if($order->status->isTerminal())
+                <div style="background: #f9fafb; border: 1px solid #e5e7eb; padding: 0.75rem; border-radius: 0.5rem; font-size: 0.8125rem; color: #374151;">
+                    <div style="font-weight: 700; text-transform: uppercase; color: #111827;">Terminal Status</div>
+                    <p style="margin-top: 0.25rem; color: #6b7280; font-size: 0.75rem;">
+                        This order is in terminal fulfillment state <strong>{{ $order->status->value }}</strong>. No further status transitions can be performed.
+                    </p>
+                    @if($order->status === \App\Enums\OrderStatus::CANCELLED && $order->cancellation)
+                        <div style="margin-top: 0.5rem; font-size: 0.75rem; border-top: 1px dashed #d1d5db; padding-top: 0.5rem;">
+                            <span style="font-weight: 600;">Cancellation Reason:</span> {{ $order->cancellation->reason }}
+                        </div>
+                    @endif
+                </div>
+            @else
+                @can('orders.update', 'admin')
+                    @php
+                        $nonCancelTransitions = array_filter(
+                            $availableTransitions ?? [],
+                            fn($s) => $s !== \App\Enums\OrderStatus::CANCELLED
+                        );
+                    @endphp
+
+                    @if(!empty($nonCancelTransitions))
+                        <form method="POST" action="{{ route('admin.orders.update-status', $order) }}" style="margin-bottom: 1rem;">
+                            @csrf
+                            <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">
+                                Transition to Status:
+                            </label>
+                            <select name="status" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.8125rem; margin-bottom: 0.5rem;" required>
+                                <option value="">-- Select Next Status --</option>
+                                @foreach($nonCancelTransitions as $transition)
+                                    <option value="{{ $transition->value }}">{{ strtoupper($transition->value) }}</option>
+                                @endforeach
+                            </select>
+
+                            <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">
+                                Comment (optional):
+                            </label>
+                            <input type="text" name="comment" placeholder="Status change reason or note..." style="width: 100%; padding: 0.4rem 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.8125rem; margin-bottom: 0.75rem;">
+
+                            <button type="submit" class="btn btn-primary" style="width: 100%; font-size: 0.8125rem; padding: 0.5rem;">
+                                Update Order Status
+                            </button>
+                        </form>
+                    @endif
+                @endcan
+
+                @can('orders.cancel', 'admin')
+                    @if($order->status->canTransitionTo(\App\Enums\OrderStatus::CANCELLED))
+                        <div style="border-top: 1px solid #e5e7eb; padding-top: 0.75rem; margin-top: 0.75rem;">
+                            <form method="POST" action="{{ route('admin.orders.cancel', $order) }}" onsubmit="return confirm('Are you sure you want to cancel this order? Deducted inventory will be restored automatically.');">
+                                @csrf
+                                <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #991b1b; margin-bottom: 0.25rem;">
+                                    Cancel Order (Restores Stock):
+                                </label>
+                                <input type="text" name="reason" placeholder="Mandatory cancellation reason..." style="width: 100%; padding: 0.4rem 0.5rem; border: 1px solid #fca5a5; border-radius: 0.375rem; font-size: 0.8125rem; margin-bottom: 0.5rem;" required>
+
+                                <button type="submit" class="btn" style="width: 100%; font-size: 0.8125rem; padding: 0.5rem; background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; font-weight: 600;">
+                                    Cancel Order
+                                </button>
+                            </form>
+                        </div>
+                    @endif
+                @endcan
+            @endif
         </div>
 
         <div class="card">

@@ -256,6 +256,8 @@ class InventoryService
                 'quantity' => -$deductAmount,
                 'previous_quantity' => $previousQuantity,
                 'new_quantity' => $newQuantity,
+                'reference_type' => Order::class,
+                'reference_id' => $order->id,
                 'notes' => "Order #{$order->order_number} fulfillment deduction",
                 'created_by' => null,
             ]);
@@ -268,5 +270,90 @@ class InventoryService
                 'stock' => ["Failed to allocate required stock for '{$variant->sku}'."],
             ]);
         }
+    }
+
+    /**
+     * Safely restore deducted stock for a cancelled order with pessimistic locking,
+     * duplicate-release prevention, and append-only RELEASE ledger entries.
+     */
+    public function releaseStockForOrder(Order $order, ?Admin $admin = null): void
+    {
+        // 1. Idempotency Guard: Ensure stock has not already been released for this order
+        $alreadyReleased = StockMovement::where('type', StockMovementType::RELEASE)
+            ->where(function ($query) use ($order) {
+                $query->where(function ($sub) use ($order) {
+                    $sub->where('reference_type', Order::class)
+                        ->where('reference_id', $order->id);
+                })->orWhere('notes', 'like', "Order #{$order->order_number} cancellation release%");
+            })
+            ->exists();
+
+        if ($alreadyReleased) {
+            return;
+        }
+
+        // 2. Identify exact outbound deductions recorded for this order
+        $outboundMovements = StockMovement::where('type', StockMovementType::OUTBOUND)
+            ->where(function ($query) use ($order) {
+                $query->where(function ($sub) use ($order) {
+                    $sub->where('reference_type', Order::class)
+                        ->where('reference_id', $order->id);
+                })->orWhere('notes', "Order #{$order->order_number} fulfillment deduction");
+            })
+            ->get();
+
+        if ($outboundMovements->isEmpty()) {
+            return; // No stock was deducted for this order
+        }
+
+        // 3. Atomically restore stock to the exact warehouse(s) where it was deducted
+        foreach ($outboundMovements as $movement) {
+            $inventory = Inventory::where('product_variant_id', $movement->product_variant_id)
+                ->where('warehouse_id', $movement->warehouse_id)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $inventory) {
+                $inventory = Inventory::create([
+                    'product_variant_id' => $movement->product_variant_id,
+                    'warehouse_id' => $movement->warehouse_id,
+                    'quantity' => 0,
+                    'reserved_quantity' => 0,
+                    'safety_stock' => 0,
+                ]);
+
+                $inventory = Inventory::where('id', $inventory->id)->lockForUpdate()->first();
+            }
+
+            $restoreQuantity = abs($movement->quantity);
+            $previousQuantity = $inventory->quantity;
+            $newQuantity = $previousQuantity + $restoreQuantity;
+
+            $inventory->update(['quantity' => $newQuantity]);
+
+            StockMovement::create([
+                'product_variant_id' => $movement->product_variant_id,
+                'warehouse_id' => $movement->warehouse_id,
+                'type' => StockMovementType::RELEASE,
+                'quantity' => $restoreQuantity,
+                'previous_quantity' => $previousQuantity,
+                'new_quantity' => $newQuantity,
+                'reference_type' => Order::class,
+                'reference_id' => $order->id,
+                'notes' => "Order #{$order->order_number} cancellation release",
+                'created_by' => $admin?->id,
+            ]);
+        }
+
+        $this->auditLogger->logAdminEvent(
+            'inventory.stock_released',
+            $admin,
+            [
+                'order_id' => $order->id,
+                'order_number' => $order->order_number,
+                'movements_count' => $outboundMovements->count(),
+            ],
+            $order
+        );
     }
 }

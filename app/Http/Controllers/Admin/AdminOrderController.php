@@ -4,13 +4,21 @@ namespace App\Http\Controllers\Admin;
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
+use App\Exceptions\Order\InvalidOrderStatusTransitionException;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Services\Order\OrderLifecycleService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rules\Enum;
 use Illuminate\View\View;
 
 class AdminOrderController extends Controller
 {
+    public function __construct(
+        protected OrderLifecycleService $lifecycleService
+    ) {}
+
     /**
      * Display a listing of orders for administrators.
      */
@@ -51,10 +59,74 @@ class AdminOrderController extends Controller
      */
     public function show(Order $order): View
     {
-        $order->load(['customer', 'items.productVariant.product', 'statusHistories', 'paymentTransactions']);
+        $order->load(['customer', 'items.productVariant.product', 'statusHistories', 'paymentTransactions', 'cancellation']);
 
         return view('admin.orders.show', [
             'order' => $order,
+            'availableTransitions' => $order->status->availableTransitions(),
         ]);
+    }
+
+    /**
+     * Update the order status to a valid next lifecycle state.
+     */
+    public function updateStatus(Request $request, Order $order): RedirectResponse
+    {
+        $validated = $request->validate([
+            'status' => ['required', new Enum(OrderStatus::class)],
+            'comment' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $targetStatus = OrderStatus::from($validated['status']);
+        $admin = auth('admin')->user();
+
+        // If transitioning to CANCELLED, enforce orders.cancel permission
+        if ($targetStatus === OrderStatus::CANCELLED) {
+            abort_unless($admin && $admin->can('orders.cancel'), 403, 'Unauthorized to cancel orders.');
+        } else {
+            abort_unless($admin && $admin->can('orders.update'), 403, 'Unauthorized to update order status.');
+        }
+
+        try {
+            $this->lifecycleService->transitionStatus(
+                order: $order,
+                targetStatus: $targetStatus,
+                comment: $validated['comment'] ?? null,
+                admin: $admin
+            );
+
+            return redirect()->route('admin.orders.show', $order)
+                ->with('success', "Order #{$order->order_number} status updated to {$targetStatus->value}.");
+        } catch (InvalidOrderStatusTransitionException $e) {
+            return redirect()->route('admin.orders.show', $order)
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Cancel the order with a mandatory cancellation reason.
+     */
+    public function cancel(Request $request, Order $order): RedirectResponse
+    {
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'max:500'],
+        ]);
+
+        $admin = auth('admin')->user();
+        abort_unless($admin && $admin->can('orders.cancel'), 403, 'Unauthorized to cancel orders.');
+
+        try {
+            $this->lifecycleService->cancelOrder(
+                order: $order,
+                reason: $validated['reason'],
+                admin: $admin
+            );
+
+            return redirect()->route('admin.orders.show', $order)
+                ->with('success', "Order #{$order->order_number} has been cancelled and stock released.");
+        } catch (InvalidOrderStatusTransitionException $e) {
+            return redirect()->route('admin.orders.show', $order)
+                ->with('error', $e->getMessage());
+        }
     }
 }

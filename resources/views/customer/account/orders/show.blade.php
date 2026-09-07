@@ -21,10 +21,25 @@
                 <h1 class="text-xl sm:text-2xl font-extrabold text-stone-900 tracking-tight font-mono">
                     #{{ $order->order_number }}
                 </h1>
-                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200">
+                @php
+                    $statusBadge = match($order->status) {
+                        \App\Enums\OrderStatus::DELIVERED => 'bg-emerald-50 text-emerald-800 border-emerald-200',
+                        \App\Enums\OrderStatus::SHIPPED, \App\Enums\OrderStatus::OUT_FOR_DELIVERY => 'bg-blue-50 text-blue-800 border-blue-200',
+                        \App\Enums\OrderStatus::PROCESSING, \App\Enums\OrderStatus::CONFIRMED => 'bg-indigo-50 text-indigo-800 border-indigo-200',
+                        \App\Enums\OrderStatus::CANCELLED => 'bg-rose-50 text-rose-800 border-rose-200',
+                        default => 'bg-amber-50 text-amber-800 border-amber-200',
+                    };
+
+                    $paymentBadge = match($order->payment_status) {
+                        \App\Enums\PaymentStatus::PAID => 'bg-emerald-50 text-emerald-800 border-emerald-200',
+                        \App\Enums\PaymentStatus::FAILED, \App\Enums\PaymentStatus::CANCELLED => 'bg-rose-50 text-rose-800 border-rose-200',
+                        default => 'bg-stone-100 text-stone-700 border-stone-200',
+                    };
+                @endphp
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider border {{ $statusBadge }}">
                     {{ $order->status->value }}
                 </span>
-                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-stone-100 text-stone-700">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider border {{ $paymentBadge }}">
                     Payment: {{ $order->payment_status->value }}
                 </span>
             </div>

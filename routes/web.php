@@ -212,6 +212,8 @@ Route::middleware('web')->prefix('admin')->name('admin.')->group(function () {
         // Orders (RBAC Protected)
         Route::get('/orders', [AdminOrderController::class, 'index'])->middleware('permission:orders.view,admin')->name('orders.index');
         Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->middleware('permission:orders.view,admin')->name('orders.show');
+        Route::post('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->middleware('permission:orders.update,admin')->name('orders.update-status');
+        Route::post('/orders/{order}/cancel', [AdminOrderController::class, 'cancel'])->middleware('permission:orders.cancel,admin')->name('orders.cancel');
 
         // Granular RBAC Demonstration Routes
         Route::get('/test/orders-view', function () {
