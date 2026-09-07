@@ -36,7 +36,7 @@
                         @click="mobileMenuOpen = true"
                         class="p-2 rounded-lg text-slate-600 hover:text-emerald-700 hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                         aria-label="Open mobile menu">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-6 h-6" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
                 </button>
@@ -44,15 +44,15 @@
 
             <!-- Botanical Branding Logo -->
             <div class="flex items-center">
-                <a href="{{ route('home') }}" class="flex items-center gap-2.5 group">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-600 to-green-700 flex items-center justify-center text-white shadow-md shadow-emerald-700/20 group-hover:scale-105 transition-transform duration-200">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <a href="{{ route('home') }}" class="storefront-logo flex items-center gap-2.5 group">
+                    <div class="storefront-logo-icon w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-600 to-green-700 flex items-center justify-center text-white shadow-md shadow-emerald-700/20 group-hover:scale-105 transition-transform duration-200">
+                        <svg class="w-6 h-6" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                         </svg>
                     </div>
-                    <div>
-                        <span class="text-xl font-extrabold tracking-tight text-slate-900 group-hover:text-emerald-700 transition-colors">Green<span class="text-emerald-600">Life</span></span>
-                        <span class="block text-[10px] font-bold uppercase tracking-widest text-emerald-700/80 -mt-1">Botanical Nursery</span>
+                    <div class="min-w-0">
+                        <span class="block text-xs sm:text-base font-extrabold tracking-tight text-slate-900 group-hover:text-emerald-700 transition-colors leading-tight whitespace-nowrap">Sugandha <span class="text-emerald-600">Farms</span></span>
+                        <span class="block text-[8px] sm:text-[10px] font-bold uppercase tracking-widest text-emerald-700/80 -mt-0.5 whitespace-nowrap">&amp; Nursery</span>
                     </div>
                 </a>
             </div>
@@ -67,7 +67,7 @@
                            maxlength="100"
                            class="w-full pl-11 pr-4 py-2.5 bg-slate-100/90 border border-slate-200 rounded-full text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all">
                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                     </div>
@@ -93,7 +93,7 @@
                                 {{ strtoupper(substr(auth('customer')->user()->name ?: 'C', 0, 1)) }}
                             </div>
                             <span class="hidden lg:inline text-sm font-semibold">{{ auth('customer')->user()->name ?: 'Account' }}</span>
-                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 text-slate-400" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
@@ -125,7 +125,7 @@
                     </div>
                 @else
                     <a href="{{ route('customer.login') }}" class="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-slate-700 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition">
-                        <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 text-slate-500" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                         <span class="hidden sm:inline">Sign In</span>
@@ -136,7 +136,7 @@
                 <a href="{{ route('cart.index') }}" 
                    class="relative inline-flex items-center justify-center p-2.5 text-slate-700 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition group"
                    title="View Shopping Cart">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-6 h-6" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                     </svg>
                     @if($cartCount > 0)
@@ -197,7 +197,7 @@
                     <button type="button" 
                             @click="mobileMenuOpen = false"
                             class="p-2 rounded-lg text-slate-400 hover:text-slate-600 focus:outline-none">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-6 h-6" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>

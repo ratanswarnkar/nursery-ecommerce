@@ -1,0 +1,160 @@
+/**
+ * Sugandha Farms and Nursery - Storefront Base & Reliability Stylesheet
+ * 
+ * Provides resilient styling, SVG guards, brand color tokens, and responsive
+ * layout rules that guarantee proper storefront rendering across all devices.
+ */
+
+:root {
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-serif: 'Playfair Display', Georgia, Cambria, serif;
+
+    /* Nursery Botanical Brand Palettes */
+    --color-terracotta-50: #fdf8f6;
+    --color-terracotta-100: #f2e8e5;
+    --color-terracotta-200: #eaddd7;
+    --color-terracotta-300: #e07a5f;
+    --color-terracotta-400: #d96b4f;
+    --color-terracotta-500: #cc5a36;
+    --color-terracotta-600: #bc4726;
+    --color-terracotta-700: #a33719;
+    --color-terracotta-800: #872b12;
+    --color-terracotta-900: #70220d;
+
+    --color-forest-50: #f2f7f4;
+    --color-forest-100: #e1ede6;
+    --color-forest-200: #c5dcce;
+    --color-forest-300: #9ec4ae;
+    --color-forest-400: #6fa687;
+    --color-forest-500: #4c8a66;
+    --color-forest-600: #397051;
+    --color-forest-700: #2e5941;
+    --color-forest-800: #264735;
+    --color-forest-900: #1b382b;
+    --color-forest-950: #0d2018;
+}
+
+/* Base HTML & Reset Guard */
+html {
+    height: 100%;
+    -webkit-text-size-adjust: 100%;
+    overflow-x: hidden;
+}
+
+body {
+    font-family: var(--font-sans);
+    background-color: #f8fafc;
+    color: #0f172a;
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    max-width: 100vw;
+}
+
+/* Global SVG Safety & Aspect Ratio Enforcement */
+svg {
+    max-width: 100%;
+    height: auto;
+    vertical-align: middle;
+}
+
+/* Storefront Branding & Logo Dimensions (Desktop: 140–180px, Mobile: 120–150px) */
+.storefront-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    text-decoration: none;
+    max-width: 180px;
+    flex-shrink: 0;
+}
+
+.storefront-logo-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.storefront-logo-icon svg {
+    width: 1.5rem !important;
+    height: 1.5rem !important;
+    max-width: 1.5rem !important;
+    max-height: 1.5rem !important;
+    flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+    .storefront-logo {
+        max-width: 170px;
+        gap: 0.5rem;
+    }
+    .storefront-logo-icon {
+        width: 2.25rem;
+        height: 2.25rem;
+        min-width: 2.25rem;
+        min-height: 2.25rem;
+    }
+    .storefront-logo-icon svg {
+        width: 1.25rem !important;
+        height: 1.25rem !important;
+        max-width: 1.25rem !important;
+        max-height: 1.25rem !important;
+    }
+}
+
+/* Custom Botanical Utilities */
+.bg-terracotta-50 { background-color: var(--color-terracotta-50); }
+.bg-terracotta-100 { background-color: var(--color-terracotta-100); }
+.bg-terracotta-500 { background-color: var(--color-terracotta-500); }
+.bg-terracotta-600 { background-color: var(--color-terracotta-600); }
+.bg-terracotta-700 { background-color: var(--color-terracotta-700); }
+.hover\:bg-terracotta-500:hover { background-color: var(--color-terracotta-500); }
+.hover\:bg-terracotta-600:hover { background-color: var(--color-terracotta-600); }
+
+.text-terracotta-600 { color: var(--color-terracotta-600); }
+.text-terracotta-700 { color: var(--color-terracotta-700); }
+.text-terracotta-800 { color: var(--color-terracotta-800); }
+
+.border-terracotta-600 { border-color: var(--color-terracotta-600); }
+.shadow-terracotta-900\/40 { box-shadow: 0 10px 15px -3px rgba(112, 34, 13, 0.4); }
+
+.from-forest-900 { --tw-gradient-from: #1b382b var(--tw-gradient-from-position); }
+.to-forest-900 { --tw-gradient-to: #1b382b var(--tw-gradient-to-position); }
+.bg-forest-900 { background-color: var(--color-forest-900); }
+
+/* Natural Hero Viewport Sizing Guard */
+.storefront-hero {
+    position: relative;
+    border-radius: 1.5rem;
+    padding: 1.75rem 1.25rem;
+}
+
+@media (min-width: 640px) {
+    .storefront-hero {
+        padding: 2.5rem 2rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .storefront-hero {
+        padding: 2.75rem 2.5rem;
+    }
+}
+
+/* Image containment rules to prevent distortion */
+img {
+    max-width: 100%;
+    height: auto;
+    object-fit: cover;
+}
+
+/* Alpine x-cloak utility */
+[x-cloak] {
+    display: none !important;
+}

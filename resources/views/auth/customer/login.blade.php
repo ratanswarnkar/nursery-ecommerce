@@ -1,8 +1,8 @@
 @extends('layouts.storefront')
 
 @section('seo')
-    <title>Customer Login | The Botanical Haven</title>
-    <meta name="description" content="Log in to your Botanical Haven customer account using your mobile phone number.">
+    <title>Customer Login | Sugandha Farms and Nursery</title>
+    <meta name="description" content="Log in to your Sugandha Farms and Nursery customer account using your mobile phone number.">
     <meta name="robots" content="noindex, follow">
 @endsection
 

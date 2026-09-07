@@ -31,8 +31,8 @@ class HomeController extends Controller
         $organizationJsonLd = $this->seoService->buildOrganizationJsonLd();
 
         $seoData = [
-            'title' => 'GreenLife Botanical Nursery | Premium Living Plants & Saplings',
-            'description' => 'Acclimatized houseplants, flowering saplings, terracotta pottery, and organic soils directly from our nursery greenhouse.',
+            'title' => 'Sugandha Farms and Nursery | Wholesale Plant Nursery & Living Greenery',
+            'description' => 'Acclimatized houseplants, flowering saplings, terracotta pottery, and organic soils directly from our nursery greenhouse in Delhi.',
             'canonical' => route('home'),
             'schema' => '<script type="application/ld+json">'.json_encode($organizationJsonLd, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT).'</script>',
         ];

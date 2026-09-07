@@ -54,11 +54,14 @@ class ProductDetailController extends Controller
                 'compare_at_price' => $variant->compare_at_price ? (float) $variant->compare_at_price : null,
                 'compare_at_price_formatted' => $variant->compare_at_price ? '₹'.number_format((float) $variant->compare_at_price, 2) : null,
                 'discount_percentage' => $variant->discount_percentage,
+                'discount_percent' => $variant->discount_percentage,
                 'available_stock' => $variant->available_stock,
+                'stock' => $variant->available_stock,
                 'is_in_stock' => $variant->available_stock > 0,
                 'max_quantity' => min(50, max(0, $variant->available_stock)),
                 'image_url' => $variantImage,
                 'attributes' => $attributeMap,
+                'attribute_values' => $attributeMap,
             ];
         })->values();
 
@@ -119,7 +122,7 @@ class ProductDetailController extends Controller
         $breadcrumbJsonLd = $this->seoService->buildBreadcrumbJsonLd($breadcrumbs);
 
         $seoData = [
-            'title' => ($product->name.' | The Botanical Haven'),
+            'title' => ($product->name.' | Sugandha Farms and Nursery'),
             'description' => strip_tags($product->short_description ?: $product->name),
             'canonical' => route('products.show', $product->slug),
             'schema' => '<script type="application/ld+json">'.json_encode($productJsonLd, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT).'</script>'."\n".

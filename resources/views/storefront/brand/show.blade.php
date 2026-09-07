@@ -1,7 +1,7 @@
 @extends('layouts.storefront')
 
 @section('seo')
-    <title>{{ $seoData['title'] ?? ($brand->name . ' | The Botanical Haven') }}</title>
+    <title>{{ $seoData['title'] ?? ($brand->name . ' | Sugandha Farms and Nursery') }}</title>
     <meta name="description" content="{{ $seoData['description'] ?? ($brand->description ?: 'Browse botanical varieties from ' . $brand->name . '.') }}">
     <link rel="canonical" href="{{ $seoData['canonical'] ?? route('brands.show', $brand->slug) }}">
     <meta property="og:title" content="{{ $seoData['title'] ?? $brand->name }}">

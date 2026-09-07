@@ -1,7 +1,7 @@
 @extends('layouts.storefront')
 
 @section('seo')
-    <title>{{ $seoData['title'] ?? ($product->name . ' | The Botanical Haven') }}</title>
+    <title>{{ $seoData['title'] ?? ($product->name . ' | Sugandha Farms and Nursery') }}</title>
     <meta name="description" content="{{ $seoData['description'] ?? ($product->short_description ?: 'Buy ' . $product->name . ' online.') }}">
     <link rel="canonical" href="{{ $seoData['canonical'] ?? route('products.show', $product->slug) }}">
     <meta property="og:title" content="{{ $seoData['title'] ?? $product->name }}">
@@ -218,7 +218,7 @@
                                         'bg-stone-100 text-stone-300 border-stone-200 line-through cursor-not-allowed': !isOptionAvailable(dim.id, opt.id)
                                     }"
                                     class="px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition-all">
-                                <span x-text="opt.value"></span>
+                                <span x-text="opt.label || opt.value"></span>
                             </button>
                         </template>
                     </div>

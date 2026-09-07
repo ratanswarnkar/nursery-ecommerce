@@ -1,7 +1,7 @@
 @extends('layouts.storefront')
 
 @section('seo')
-    <title>Customer Address Book | The Botanical Haven</title>
+    <title>Customer Address Book | Sugandha Farms and Nursery</title>
     <meta name="robots" content="noindex, follow">
 @endsection
 

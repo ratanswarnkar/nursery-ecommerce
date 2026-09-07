@@ -64,7 +64,7 @@ class CategoryPageController extends Controller
         $breadcrumbJsonLd = $this->seoService->buildBreadcrumbJsonLd($breadcrumbs);
 
         $seoData = [
-            'title' => $category->name.' | The Botanical Haven',
+            'title' => $category->name.' | Sugandha Farms and Nursery',
             'description' => $category->description ?: 'Browse healthy '.$category->name.' plants.',
             'canonical' => route('categories.show', $category->slug),
             'schema' => '<script type="application/ld+json">'.json_encode($breadcrumbJsonLd, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT).'</script>',

@@ -1,7 +1,7 @@
 @extends('layouts.storefront')
 
 @section('seo')
-    <title>{{ $seoData['title'] ?? 'Shop All Plants & Nursery Botanicals | The Botanical Haven' }}</title>
+    <title>{{ $seoData['title'] ?? 'Shop All Plants & Nursery Botanicals | Sugandha Farms and Nursery' }}</title>
     <meta name="description" content="{{ $seoData['description'] ?? 'Browse our complete nursery catalog of healthy, acclimatized plants, saplings, and garden supplies.' }}">
     <link rel="canonical" href="{{ $seoData['canonical'] ?? route('shop.index') }}">
     <meta property="og:title" content="{{ $seoData['title'] ?? 'Shop Botanical Catalog' }}">

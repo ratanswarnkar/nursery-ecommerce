@@ -1,7 +1,7 @@
 @extends('layouts.storefront')
 
 @section('seo')
-    <title>Your Botanical Cart | The Botanical Haven</title>
+    <title>Your Botanical Cart | Sugandha Farms and Nursery</title>
     <meta name="description" content="Review your selected nursery plants, saplings, and garden supplies.">
     <meta name="robots" content="noindex, follow">
 @endsection
