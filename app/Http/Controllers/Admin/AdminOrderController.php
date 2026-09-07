@@ -51,7 +51,7 @@ class AdminOrderController extends Controller
      */
     public function show(Order $order): View
     {
-        $order->load(['customer', 'items.productVariant.product', 'statusHistories']);
+        $order->load(['customer', 'items.productVariant.product', 'statusHistories', 'paymentTransactions']);
 
         return view('admin.orders.show', [
             'order' => $order,

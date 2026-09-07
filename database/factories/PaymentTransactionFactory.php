@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Enums\PaymentTransactionStatus;
+use App\Enums\PaymentStatus;
 use App\Models\Order;
 use App\Models\PaymentTransaction;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -15,13 +15,13 @@ class PaymentTransactionFactory extends Factory
     {
         return [
             'order_id' => Order::factory(),
-            'transaction_number' => 'TXN-'.fake()->unique()->numerify('##########'),
-            'gateway' => 'razorpay',
-            'gateway_transaction_id' => 'pay_'.fake()->unique()->bothify('??????????????'),
+            'transaction_number' => 'PAY-'.fake()->unique()->numerify('##########'),
+            'gateway' => 'null',
+            'gateway_transaction_id' => 'null_txn_'.fake()->unique()->bothify('??????????????'),
             'amount' => 1228.82,
             'currency' => 'INR',
-            'status' => PaymentTransactionStatus::CREATED,
-            'payment_method' => 'upi',
+            'status' => PaymentStatus::PENDING,
+            'payment_method' => 'simulated',
             'payload' => null,
         ];
     }

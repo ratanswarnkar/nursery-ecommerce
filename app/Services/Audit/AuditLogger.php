@@ -24,6 +24,18 @@ class AuditLogger
         'token',
         'cookie',
         'remember_token',
+        'card',
+        'card_number',
+        'cvv',
+        'cvc',
+        'pan',
+        'pin',
+        'encryption_key',
+        'private_key',
+        'signature',
+        'auth_header',
+        'client_secret',
+        'api_key',
     ];
 
     /**

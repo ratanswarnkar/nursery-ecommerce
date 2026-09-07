@@ -6,6 +6,10 @@ use App\Models\Admin;
 use App\Services\Auth\OtpService;
 use App\Services\Auth\OtpServiceInterface;
 use App\Services\Auth\PhoneNumberNormalizer;
+use App\Services\Payment\Contracts\PaymentGatewayInterface;
+use App\Services\Payment\PaymentGatewayManager;
+use App\Services\Payment\PaymentService;
+use App\Services\Payment\PaymentTransactionNumberGenerator;
 use App\Services\Sms\LogSmsSender;
 use App\Services\Sms\NullSmsSender;
 use App\Services\Sms\SmsSenderInterface;
@@ -34,6 +38,13 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->app->singleton(OtpServiceInterface::class, OtpService::class);
+
+        $this->app->singleton(PaymentGatewayManager::class);
+        $this->app->singleton(PaymentTransactionNumberGenerator::class);
+        $this->app->singleton(PaymentGatewayInterface::class, function ($app) {
+            return $app->make(PaymentGatewayManager::class)->gateway();
+        });
+        $this->app->singleton(PaymentService::class);
     }
 
     /**

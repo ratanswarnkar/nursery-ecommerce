@@ -93,6 +93,79 @@
             </div>
         </div>
 
+        <!-- Payment Transactions -->
+        <div class="card">
+            <h2 style="font-size: 1rem; font-weight: 700; margin-bottom: 1rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+                <span>Payment Transactions ({{ $order->paymentTransactions->count() }})</span>
+            </h2>
+
+            @if($order->paymentTransactions->isEmpty())
+                <p style="font-size: 0.8125rem; color: #6b7280; font-style: italic; margin: 0.5rem 0;">
+                    No payment transactions initiated for this order yet.
+                </p>
+            @else
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Transaction #</th>
+                                <th>Gateway</th>
+                                <th>Gateway Ref</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Method</th>
+                                <th>Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($order->paymentTransactions as $txn)
+                                <tr>
+                                    <td style="font-family: monospace; font-size: 0.75rem; font-weight: 600;">
+                                        {{ $txn->transaction_number }}
+                                    </td>
+                                    <td>
+                                        <span style="text-transform: uppercase; font-size: 0.75rem; font-weight: 600; color: #4b5563;">
+                                            {{ $txn->gateway }}
+                                        </span>
+                                    </td>
+                                    <td style="font-family: monospace; font-size: 0.75rem; color: #6b7280;">
+                                        {{ $txn->gateway_transaction_id ?? '—' }}
+                                    </td>
+                                    <td style="font-weight: 700;">
+                                        ₹{{ number_format((float) $txn->amount, 2) }}
+                                    </td>
+                                    <td>
+                                        @php
+                                            $badgeStyle = match($txn->status) {
+                                                \App\Enums\PaymentStatus::PAID => 'background: #d1fae5; color: #065f46;',
+                                                \App\Enums\PaymentStatus::FAILED => 'background: #fee2e2; color: #991b1b;',
+                                                \App\Enums\PaymentStatus::CANCELLED, \App\Enums\PaymentStatus::EXPIRED => 'background: #f3f4f6; color: #374151;',
+                                                default => 'background: #fef3c7; color: #92400e;',
+                                            };
+                                        @endphp
+                                        <span class="badge" style="{{ $badgeStyle }} padding: 0.2rem 0.5rem; border-radius: 9999px; font-weight: 700; text-transform: uppercase; font-size: 0.7rem;">
+                                            {{ $txn->status->value }}
+                                        </span>
+                                        @if($txn->failure_message)
+                                            <div style="font-size: 0.7rem; color: #dc2626; margin-top: 0.25rem;">
+                                                {{ $txn->failure_message }}
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td style="font-size: 0.75rem; color: #4b5563;">
+                                        {{ $txn->payment_method ?? '—' }}
+                                    </td>
+                                    <td style="font-size: 0.75rem; color: #6b7280; font-family: monospace;">
+                                        {{ ($txn->paid_at ?? $txn->created_at)->format('M d, Y h:i A') }}
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+        </div>
+
         @if($order->notes)
             <div class="card">
                 <h3 style="font-size: 0.875rem; font-weight: 700; margin-bottom: 0.5rem;">Customer Order Notes</h3>
