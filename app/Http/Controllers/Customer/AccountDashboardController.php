@@ -26,6 +26,9 @@ class AccountDashboardController extends Controller
         $cart = $this->cartService->getOrCreateCart($customer, $request->session()->getId());
         $cartDetails = $this->cartService->getCartDetails($cart);
 
+        // Get recent orders
+        $recentOrders = $customer->orders()->with('items')->latest('id')->take(5)->get();
+
         return view('customer.account.dashboard', [
             'customer' => $customer,
             'defaultAddress' => $defaultAddress,
@@ -33,6 +36,7 @@ class AccountDashboardController extends Controller
             'cartCount' => $cartDetails['item_count'],
             'cartItemCount' => $cartDetails['item_count'],
             'cartSubtotal' => $cartDetails['subtotal'],
+            'recentOrders' => $recentOrders,
         ]);
     }
 }

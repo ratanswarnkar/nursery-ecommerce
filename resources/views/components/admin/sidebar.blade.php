@@ -60,10 +60,12 @@
             </a>
         @endcan
 
-        <div class="nav-section-title">Future Domains</div>
-        <div class="nav-item" style="opacity: 0.5; cursor: not-allowed;" title="Orders will be built in Phase 5">
-            <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
-            <span>Orders (Phase 5)</span>
-        </div>
+        <div class="nav-section-title">Sales & Orders</div>
+        @can('orders.view', 'admin')
+            <a href="{{ route('admin.orders.index') }}" class="nav-item {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                <span>Orders</span>
+            </a>
+        @endcan
     </nav>
 </aside>

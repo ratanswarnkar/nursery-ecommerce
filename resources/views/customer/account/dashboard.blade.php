@@ -98,31 +98,66 @@
         </a>
     </div>
 
-    {{-- Order History Placeholder (Strictly Phase 5 Compliant) --}}
-    <div class="bg-white rounded-3xl border border-stone-200/80 shadow-sm p-8 space-y-6">
+    {{-- Recent Orders Section --}}
+    <div class="bg-white rounded-3xl border border-stone-200/80 shadow-sm p-6 sm:p-8 space-y-6">
         <div class="flex items-center justify-between border-b border-stone-100 pb-4">
             <div>
                 <h2 class="text-xl font-bold text-stone-900">Recent Plant Orders</h2>
                 <p class="text-xs text-stone-500 mt-0.5">Track shipment and delivery status of your nursery plants.</p>
             </div>
+            @if(isset($recentOrders) && $recentOrders->isNotEmpty())
+                <a href="{{ route('account.orders.index') }}" class="text-xs font-semibold text-emerald-800 hover:text-emerald-950">
+                    View All Orders &rarr;
+                </a>
+            @endif
         </div>
 
-        <div class="p-12 text-center rounded-2xl bg-stone-50 border border-dashed border-stone-200 space-y-3">
-            <div class="w-12 h-12 rounded-full bg-stone-100 text-stone-400 mx-auto flex items-center justify-center">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                </svg>
+        @if(isset($recentOrders) && $recentOrders->isNotEmpty())
+            <div class="divide-y divide-stone-100">
+                @foreach($recentOrders as $order)
+                    <div class="py-4 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="font-mono font-bold text-sm text-emerald-950">#{{ $order->order_number }}</span>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-stone-100 text-stone-700">
+                                    {{ $order->status->value }}
+                                </span>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200/60">
+                                    {{ $order->payment_status->value }}
+                                </span>
+                            </div>
+                            <p class="text-xs text-stone-500">
+                                Placed on {{ $order->created_at->format('M d, Y') }} &bull; {{ $order->items->count() }} {{ Str::plural('item', $order->items->count()) }}
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-4 sm:justify-end">
+                            <span class="font-extrabold text-stone-900 text-base">₹{{ number_format((float) $order->grand_total, 2) }}</span>
+                            <a href="{{ route('account.orders.show', $order->order_number) }}"
+                               class="py-2 px-3.5 rounded-xl bg-stone-100 hover:bg-emerald-50 hover:text-emerald-800 text-xs font-semibold text-stone-700 transition-colors">
+                                Details &rarr;
+                            </a>
+                        </div>
+                    </div>
+                @endforeach
             </div>
-            <h3 class="text-sm font-semibold text-stone-700">No orders placed yet</h3>
-            <p class="text-xs text-stone-500 max-w-sm mx-auto">
-                Once you complete purchases during Phase 6 checkout, your order invoices and tracking will appear here.
-            </p>
-            <div class="pt-2">
-                <a href="{{ route('shop.index') }}" class="inline-flex items-center px-4 py-2 rounded-xl bg-emerald-800 text-white text-xs font-bold hover:bg-emerald-900 transition-colors">
-                    Start Shopping
-                </a>
+        @else
+            <div class="p-12 text-center rounded-2xl bg-stone-50 border border-dashed border-stone-200 space-y-3">
+                <div class="w-12 h-12 rounded-full bg-stone-100 text-stone-400 mx-auto flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                </div>
+                <h3 class="text-sm font-semibold text-stone-700">No orders placed yet</h3>
+                <p class="text-xs text-stone-500 max-w-sm mx-auto">
+                    Once you place an order at checkout, your order receipts and greenhouse dispatch status will appear here.
+                </p>
+                <div class="pt-2">
+                    <a href="{{ route('shop.index') }}" class="inline-flex items-center px-4 py-2 rounded-xl bg-emerald-800 text-white text-xs font-bold hover:bg-emerald-900 transition-colors">
+                        Start Shopping
+                    </a>
+                </div>
             </div>
-        </div>
+        @endif
     </div>
 </div>
 @endsection

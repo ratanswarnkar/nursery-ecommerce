@@ -5,6 +5,7 @@ namespace App\Services\Inventory;
 use App\Enums\StockMovementType;
 use App\Models\Admin;
 use App\Models\Inventory;
+use App\Models\Order;
 use App\Models\ProductVariant;
 use App\Models\StockMovement;
 use App\Models\Warehouse;
@@ -198,5 +199,74 @@ class InventoryService
         }
 
         return (int) $aggregates->total_available <= (int) $aggregates->total_safety;
+    }
+
+    /**
+     * Atomically deduct stock across active warehouses for an order with pessimistic locking and outbound ledger records.
+     */
+    public function deductStockForOrder(ProductVariant $variant, int $quantity, Order $order): void
+    {
+        if ($quantity <= 0) {
+            return;
+        }
+
+        // Lock all inventory rows for this variant in active warehouses
+        $inventories = Inventory::where('product_variant_id', $variant->id)
+            ->whereHas('warehouse', fn ($q) => $q->where('is_active', true))
+            ->lockForUpdate()
+            ->with('warehouse')
+            ->get();
+
+        $totalAvailable = $inventories->sum(fn ($inv) => max(0, $inv->quantity - $inv->reserved_quantity));
+
+        if ($totalAvailable < $quantity) {
+            throw ValidationException::withMessages([
+                'stock' => ["Insufficient stock for '{$variant->product?->name}' ({$variant->sku}). Requested: {$quantity}, Available: {$totalAvailable}."],
+            ]);
+        }
+
+        // Allocate deduction across active warehouses (prioritize default warehouse, then largest available)
+        $sortedInventories = $inventories->sortBy([
+            fn ($a, $b) => $b->warehouse->is_default <=> $a->warehouse->is_default,
+            fn ($a, $b) => ($b->quantity - $b->reserved_quantity) <=> ($a->quantity - $a->reserved_quantity),
+        ]);
+
+        $remainingToDeduct = $quantity;
+
+        foreach ($sortedInventories as $inventory) {
+            if ($remainingToDeduct <= 0) {
+                break;
+            }
+
+            $availableInWarehouse = max(0, $inventory->quantity - $inventory->reserved_quantity);
+            if ($availableInWarehouse <= 0) {
+                continue;
+            }
+
+            $deductAmount = min($remainingToDeduct, $availableInWarehouse);
+            $previousQuantity = $inventory->quantity;
+            $newQuantity = $previousQuantity - $deductAmount;
+
+            $inventory->update(['quantity' => $newQuantity]);
+
+            StockMovement::create([
+                'product_variant_id' => $variant->id,
+                'warehouse_id' => $inventory->warehouse_id,
+                'type' => StockMovementType::OUTBOUND,
+                'quantity' => -$deductAmount,
+                'previous_quantity' => $previousQuantity,
+                'new_quantity' => $newQuantity,
+                'notes' => "Order #{$order->order_number} fulfillment deduction",
+                'created_by' => null,
+            ]);
+
+            $remainingToDeduct -= $deductAmount;
+        }
+
+        if ($remainingToDeduct > 0) {
+            throw ValidationException::withMessages([
+                'stock' => ["Failed to allocate required stock for '{$variant->sku}'."],
+            ]);
+        }
     }
 }

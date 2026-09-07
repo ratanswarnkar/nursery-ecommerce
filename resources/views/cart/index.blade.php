@@ -214,10 +214,20 @@
                     </div>
                 </div>
 
-                {{-- Phase 5 Boundary Notice (Strictly no checkout) --}}
-                <div class="p-3.5 rounded-2xl bg-stone-50 border border-dashed border-stone-300 text-xs text-stone-500 text-center leading-relaxed">
-                    <span class="font-bold text-stone-700">Phase 5 Storefront:</span> Checkout, payment options & order placement will be available in Phase 6.
-                </div>
+                @if($has_issues)
+                    <button type="button" disabled
+                            class="w-full py-3.5 px-5 rounded-2xl bg-stone-200 text-stone-400 font-bold text-sm cursor-not-allowed text-center">
+                        Resolve Alerts to Checkout
+                    </button>
+                @else
+                    <a href="{{ route('checkout.index') }}"
+                       class="w-full py-3.5 px-5 rounded-2xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/15 transition-all hover:scale-[1.01] active:scale-[0.99]">
+                        <span>Proceed to Checkout</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                        </svg>
+                    </a>
+                @endif
 
                 <a href="{{ route('shop.index') }}"
                    class="block w-full py-3 px-4 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 text-center font-semibold text-xs transition-colors">

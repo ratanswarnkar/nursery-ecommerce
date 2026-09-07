@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminOrderController;
 use App\Http\Controllers\Admin\AttributeController;
 use App\Http\Controllers\Admin\AttributeValueController;
 use App\Http\Controllers\Admin\BrandController;
@@ -17,9 +18,11 @@ use App\Http\Controllers\Auth\CustomerAuthController;
 use App\Http\Controllers\Cart\CartController;
 use App\Http\Controllers\Customer\AccountDashboardController;
 use App\Http\Controllers\Customer\AddressController;
+use App\Http\Controllers\Customer\CustomerOrderController;
 use App\Http\Controllers\Customer\ProfileController;
 use App\Http\Controllers\Storefront\BrandPageController;
 use App\Http\Controllers\Storefront\CategoryPageController;
+use App\Http\Controllers\Storefront\CheckoutController;
 use App\Http\Controllers\Storefront\HomeController;
 use App\Http\Controllers\Storefront\ProductDetailController;
 use App\Http\Controllers\Storefront\ShopController;
@@ -73,6 +76,15 @@ Route::middleware('web')->group(function () {
         Route::put('/account/addresses/{address}', [AddressController::class, 'update'])->name('account.addresses.update');
         Route::delete('/account/addresses/{address}', [AddressController::class, 'destroy'])->name('account.addresses.destroy');
         Route::post('/account/addresses/{address}/set-default', [AddressController::class, 'setDefault'])->name('account.addresses.set-default');
+
+        // Customer Checkout Routes
+        Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+        Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+        Route::get('/checkout/success/{order_number}', [CheckoutController::class, 'success'])->name('checkout.success');
+
+        // Customer Orders (IDOR-Protected)
+        Route::get('/account/orders', [CustomerOrderController::class, 'index'])->name('account.orders.index');
+        Route::get('/account/orders/{order_number}', [CustomerOrderController::class, 'show'])->name('account.orders.show');
     });
 });
 
@@ -196,6 +208,10 @@ Route::middleware('web')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/inventory', [InventoryController::class, 'index'])->middleware('permission:inventory.view,admin')->name('inventory.index');
         Route::post('/inventory/adjust', [InventoryController::class, 'adjust'])->middleware('permission:inventory.manage,admin')->name('inventory.adjust');
         Route::get('/inventory/movements', [InventoryController::class, 'movements'])->middleware('permission:inventory.view,admin')->name('inventory.movements');
+
+        // Orders (RBAC Protected)
+        Route::get('/orders', [AdminOrderController::class, 'index'])->middleware('permission:orders.view,admin')->name('orders.index');
+        Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->middleware('permission:orders.view,admin')->name('orders.show');
 
         // Granular RBAC Demonstration Routes
         Route::get('/test/orders-view', function () {
