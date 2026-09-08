@@ -13,6 +13,7 @@ use App\Services\Payment\Contracts\PaymentGatewayInterface;
 use App\Services\Payment\PaymentGatewayManager;
 use App\Services\Payment\PaymentService;
 use App\Services\Payment\PaymentTransactionNumberGenerator;
+use App\Services\Shipping\ShipmentService;
 use App\Services\Sms\LogSmsSender;
 use App\Services\Sms\NullSmsSender;
 use App\Services\Sms\SmsSenderInterface;
@@ -51,6 +52,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(OrderLifecycleService::class);
         $this->app->singleton(InvoiceNumberGenerator::class);
         $this->app->singleton(InvoiceService::class);
+        $this->app->singleton(ShipmentService::class);
     }
 
     /**

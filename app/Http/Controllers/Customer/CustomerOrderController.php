@@ -35,7 +35,7 @@ class CustomerOrderController extends Controller
     {
         $customer = Auth::guard('customer')->user();
 
-        $order = Order::with(['items.productVariant.product', 'statusHistories'])
+        $order = Order::with(['items.productVariant.product', 'statusHistories', 'shipments'])
             ->where('order_number', $orderNumber)
             ->firstOrFail();
 

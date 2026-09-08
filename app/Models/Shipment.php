@@ -14,10 +14,12 @@ class Shipment extends Model
     protected $fillable = [
         'order_id',
         'tracking_number',
+        'tracking_url',
         'carrier',
         'shipping_status',
         'shipped_at',
         'delivered_at',
+        'estimated_delivery_at',
         'notes',
         'items_snapshot',
     ];
@@ -28,6 +30,7 @@ class Shipment extends Model
             'shipping_status' => ShippingStatus::class,
             'shipped_at' => 'datetime',
             'delivered_at' => 'datetime',
+            'estimated_delivery_at' => 'datetime',
             'items_snapshot' => 'array',
         ];
     }

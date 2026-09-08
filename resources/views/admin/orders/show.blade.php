@@ -247,6 +247,143 @@
             </div>
         </div>
 
+        <!-- Fulfillment & Shipping -->
+        <div class="card">
+            <h3 style="font-size: 0.875rem; font-weight: 700; margin-bottom: 0.75rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+                <span>Fulfillment & Shipping</span>
+                <span class="badge" style="background: #e0f2fe; color: #0369a1; padding: 0.15rem 0.45rem; border-radius: 9999px; font-weight: 700; text-transform: uppercase; font-size: 0.65rem;">
+                    {{ $order->shipping_status->value }}
+                </span>
+            </h3>
+
+            @php
+                $activeShipment = $order->shipments->sortByDesc('id')->first();
+            @endphp
+
+            @if($activeShipment)
+                <div style="display: flex; flex-direction: column; gap: 0.6rem; font-size: 0.8125rem;">
+                    <div>
+                        <span style="color: #6b7280;">Carrier / Courier:</span>
+                        <span style="font-weight: 600; color: #111827;">{{ $activeShipment->carrier ?: 'Standard Delivery' }}</span>
+                    </div>
+                    <div>
+                        <span style="color: #6b7280;">Tracking / AWB #:</span>
+                        <span style="font-family: monospace; font-weight: 700; color: #111827;">{{ $activeShipment->tracking_number ?: 'Not assigned' }}</span>
+                    </div>
+                    @if($activeShipment->tracking_url)
+                        <div>
+                            <span style="color: #6b7280;">Tracking Link:</span>
+                            <a href="{{ $activeShipment->tracking_url }}" target="_blank" rel="noopener noreferrer" style="color: #059669; font-weight: 600; text-decoration: underline; font-size: 0.75rem; word-break: break-all;">
+                                Track on Courier Portal &rarr;
+                            </a>
+                        </div>
+                    @endif
+                    <div>
+                        <span style="color: #6b7280;">Dispatched At:</span>
+                        <span style="font-family: monospace; font-size: 0.75rem;">{{ $activeShipment->shipped_at ? $activeShipment->shipped_at->format('M d, Y h:i A') : '—' }}</span>
+                    </div>
+                    @if($activeShipment->estimated_delivery_at)
+                        <div>
+                            <span style="color: #6b7280;">Est. Delivery:</span>
+                            <span style="font-family: monospace; font-size: 0.75rem; color: #4338ca;">{{ $activeShipment->estimated_delivery_at->format('M d, Y') }}</span>
+                        </div>
+                    @endif
+                    @if($activeShipment->delivered_at)
+                        <div style="background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 600;">
+                            ✓ Delivered on {{ $activeShipment->delivered_at->format('M d, Y h:i A') }}
+                        </div>
+                    @endif
+                    @if($activeShipment->notes)
+                        <div style="background: #f9fafb; padding: 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; color: #4b5563;">
+                            <span style="font-weight: 600;">Notes:</span> {{ $activeShipment->notes }}
+                        </div>
+                    @endif
+
+                    {{-- Admin Milestone Actions for Shipped orders --}}
+                    @can('orders.update', 'admin')
+                        @if($order->status === \App\Enums\OrderStatus::SHIPPED)
+                            <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem; border-top: 1px dashed #e5e7eb; padding-top: 0.75rem;">
+                                <form method="POST" action="{{ route('admin.orders.shipments.out-for-delivery', [$order, $activeShipment]) }}" style="flex: 1;">
+                                    @csrf
+                                    <button type="submit" class="btn btn-secondary" style="width: 100%; font-size: 0.75rem; padding: 0.4rem;">
+                                        Out for Delivery
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ route('admin.orders.shipments.delivered', [$order, $activeShipment]) }}" style="flex: 1;" onsubmit="return confirm('Confirm shipment delivery to customer?');">
+                                    @csrf
+                                    <button type="submit" class="btn btn-primary" style="width: 100%; font-size: 0.75rem; padding: 0.4rem;">
+                                        Mark Delivered
+                                    </button>
+                                </form>
+                            </div>
+                        @elseif($order->status === \App\Enums\OrderStatus::OUT_FOR_DELIVERY)
+                            <div style="margin-top: 0.5rem; border-top: 1px dashed #e5e7eb; padding-top: 0.75rem;">
+                                <form method="POST" action="{{ route('admin.orders.shipments.delivered', [$order, $activeShipment]) }}" onsubmit="return confirm('Confirm shipment delivery to customer?');">
+                                    @csrf
+                                    <button type="submit" class="btn btn-primary" style="width: 100%; font-size: 0.75rem; padding: 0.4rem;">
+                                        Mark Delivered
+                                    </button>
+                                </form>
+                            </div>
+                        @endif
+                    @endcan
+                </div>
+            @else
+                @if($order->status === \App\Enums\OrderStatus::PROCESSING && $order->payment_status === \App\Enums\PaymentStatus::PAID)
+                    @can('orders.update', 'admin')
+                        <form method="POST" action="{{ route('admin.orders.shipments.create', $order) }}" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            @csrf
+                            <div>
+                                <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #374151; margin-bottom: 0.2rem;">
+                                    Carrier / Courier:
+                                </label>
+                                <input type="text" name="carrier" placeholder="e.g. BlueDart, Delhivery, DTDC" value="{{ old('carrier') }}" style="width: 100%; padding: 0.4rem 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.8125rem;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #374151; margin-bottom: 0.2rem;">
+                                    Tracking / AWB Number:
+                                </label>
+                                <input type="text" name="tracking_number" placeholder="e.g. BD123456789IN" value="{{ old('tracking_number') }}" style="width: 100%; padding: 0.4rem 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.8125rem; font-family: monospace;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #374151; margin-bottom: 0.2rem;">
+                                    Tracking URL:
+                                </label>
+                                <input type="url" name="tracking_url" placeholder="https://track.courier.com/..." value="{{ old('tracking_url') }}" style="width: 100%; padding: 0.4rem 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.8125rem;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #374151; margin-bottom: 0.2rem;">
+                                    Estimated Delivery Date:
+                                </label>
+                                <input type="date" name="estimated_delivery_at" value="{{ old('estimated_delivery_at') }}" style="width: 100%; padding: 0.4rem 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.8125rem;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #374151; margin-bottom: 0.2rem;">
+                                    Shipment Notes (optional):
+                                </label>
+                                <input type="text" name="notes" placeholder="e.g. Fragile botanical packaging" value="{{ old('notes') }}" style="width: 100%; padding: 0.4rem 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.8125rem;">
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="width: 100%; font-size: 0.8125rem; padding: 0.5rem; margin-top: 0.25rem;">
+                                Dispatch Order & Create Shipment
+                            </button>
+                        </form>
+                    @else
+                        <p style="font-size: 0.75rem; color: #6b7280; font-style: italic;">
+                            Awaiting fulfillment dispatch by authorized admin.
+                        </p>
+                    @endcan
+                @elseif($order->status->isTerminal())
+                    <p style="font-size: 0.75rem; color: #9ca3af; font-style: italic;">
+                        Order is in terminal state [{{ $order->status->value }}]. No shipments can be created.
+                    </p>
+                @else
+                    <p style="font-size: 0.75rem; color: #9ca3af; font-style: italic;">
+                        Fulfillment is available once payment is verified and order reaches PROCESSING status.
+                    </p>
+                @endif
+            @endif
+        </div>
+
         <!-- Order Lifecycle Management -->
         <div class="card">
             <h3 style="font-size: 0.875rem; font-weight: 700; margin-bottom: 0.75rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.5rem;">

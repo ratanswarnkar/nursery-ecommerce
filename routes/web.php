@@ -216,6 +216,9 @@ Route::middleware('web')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/orders/{order}/invoice', [AdminOrderController::class, 'invoice'])->middleware('permission:orders.view,admin')->name('orders.invoice');
         Route::post('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->middleware('permission:orders.update,admin')->name('orders.update-status');
         Route::post('/orders/{order}/cancel', [AdminOrderController::class, 'cancel'])->middleware('permission:orders.cancel,admin')->name('orders.cancel');
+        Route::post('/orders/{order}/shipments', [AdminOrderController::class, 'createShipment'])->middleware('permission:orders.update,admin')->name('orders.shipments.create');
+        Route::post('/orders/{order}/shipments/{shipment}/out-for-delivery', [AdminOrderController::class, 'markOutForDelivery'])->middleware('permission:orders.update,admin')->name('orders.shipments.out-for-delivery');
+        Route::post('/orders/{order}/shipments/{shipment}/delivered', [AdminOrderController::class, 'markDelivered'])->middleware('permission:orders.update,admin')->name('orders.shipments.delivered');
 
         // Granular RBAC Demonstration Routes
         Route::get('/test/orders-view', function () {

@@ -17,9 +17,11 @@ class ShipmentFactory extends Factory
             'order_id' => Order::factory(),
             'tracking_number' => 'TRK'.fake()->unique()->numerify('##########'),
             'carrier' => 'BlueDart Express',
+            'tracking_url' => 'https://track.bluedart.com/tracking',
             'shipping_status' => ShippingStatus::UNFULFILLED,
             'shipped_at' => null,
             'delivered_at' => null,
+            'estimated_delivery_at' => null,
             'notes' => 'Handle with care: live plants',
             'items_snapshot' => null,
         ];

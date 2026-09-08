@@ -5,10 +5,14 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Exceptions\Order\InvalidOrderStatusTransitionException;
+use App\Exceptions\Shipping\IneligibleForShipmentException;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\CreateShipmentRequest;
 use App\Models\Order;
+use App\Models\Shipment;
 use App\Services\Invoice\InvoiceService;
 use App\Services\Order\OrderLifecycleService;
+use App\Services\Shipping\ShipmentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -61,7 +65,7 @@ class AdminOrderController extends Controller
      */
     public function show(Order $order): View
     {
-        $order->load(['customer', 'items.productVariant.product', 'statusHistories', 'paymentTransactions', 'cancellation']);
+        $order->load(['customer', 'items.productVariant.product', 'statusHistories', 'paymentTransactions', 'cancellation', 'shipments']);
 
         return view('admin.orders.show', [
             'order' => $order,
@@ -145,5 +149,97 @@ class AdminOrderController extends Controller
         $invoice = $invoiceService->getOrCreateInvoiceForOrder($order);
 
         return $invoiceService->downloadPdfResponse($invoice);
+    }
+
+    /**
+     * Dispatch order and create shipment record.
+     */
+    public function createShipment(
+        CreateShipmentRequest $request,
+        Order $order,
+        ShipmentService $shipmentService
+    ): RedirectResponse {
+        $admin = auth('admin')->user();
+        abort_unless($admin && $admin->can('orders.update'), 403, 'Unauthorized to dispatch orders.');
+
+        try {
+            $shipmentService->createShipment(
+                order: $order,
+                data: $request->validated(),
+                admin: $admin
+            );
+
+            return redirect()->route('admin.orders.show', $order)
+                ->with('success', "Order #{$order->order_number} has been dispatched successfully.");
+        } catch (IneligibleForShipmentException|InvalidOrderStatusTransitionException $e) {
+            return redirect()->route('admin.orders.show', $order)
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Mark shipment as out for delivery.
+     */
+    public function markOutForDelivery(
+        Request $request,
+        Order $order,
+        Shipment $shipment,
+        ShipmentService $shipmentService
+    ): RedirectResponse {
+        $admin = auth('admin')->user();
+        abort_unless($admin && $admin->can('orders.update'), 403, 'Unauthorized to update fulfillment status.');
+
+        abort_unless((int) $shipment->order_id === (int) $order->id, 404);
+
+        $validated = $request->validate([
+            'comment' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        try {
+            $shipmentService->markOutForDelivery(
+                shipment: $shipment,
+                comment: $validated['comment'] ?? null,
+                admin: $admin
+            );
+
+            return redirect()->route('admin.orders.show', $order)
+                ->with('success', "Shipment for order #{$order->order_number} is now out for delivery.");
+        } catch (InvalidOrderStatusTransitionException $e) {
+            return redirect()->route('admin.orders.show', $order)
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Mark shipment as delivered.
+     */
+    public function markDelivered(
+        Request $request,
+        Order $order,
+        Shipment $shipment,
+        ShipmentService $shipmentService
+    ): RedirectResponse {
+        $admin = auth('admin')->user();
+        abort_unless($admin && $admin->can('orders.update'), 403, 'Unauthorized to update fulfillment status.');
+
+        abort_unless((int) $shipment->order_id === (int) $order->id, 404);
+
+        $validated = $request->validate([
+            'comment' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        try {
+            $shipmentService->markDelivered(
+                shipment: $shipment,
+                comment: $validated['comment'] ?? null,
+                admin: $admin
+            );
+
+            return redirect()->route('admin.orders.show', $order)
+                ->with('success', "Shipment for order #{$order->order_number} has been marked as delivered.");
+        } catch (InvalidOrderStatusTransitionException $e) {
+            return redirect()->route('admin.orders.show', $order)
+                ->with('error', $e->getMessage());
+        }
     }
 }

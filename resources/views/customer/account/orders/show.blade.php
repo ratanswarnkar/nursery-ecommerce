@@ -62,6 +62,64 @@
         </div>
     </div>
 
+    {{-- Shipment & Tracking Details (Displayed when shipment exists) --}}
+    @php
+        $latestShipment = $order->shipments->sortByDesc('id')->first();
+    @endphp
+
+    @if($latestShipment)
+        <div class="p-6 sm:p-8 rounded-3xl bg-white border border-emerald-100 shadow-sm space-y-4">
+            <div class="flex items-center justify-between gap-4 flex-wrap pb-3 border-b border-stone-100">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                    <h2 class="text-base sm:text-lg font-bold text-stone-900">Shipment & Delivery Details</h2>
+                </div>
+                <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200">
+                    {{ $latestShipment->shipping_status->value }}
+                </span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                <div>
+                    <span class="text-stone-400 font-medium block">Courier / Carrier</span>
+                    <span class="font-bold text-stone-900 text-sm">{{ $latestShipment->carrier ?: 'Standard Nursery Delivery' }}</span>
+                </div>
+                <div>
+                    <span class="text-stone-400 font-medium block">Tracking / AWB Number</span>
+                    <span class="font-mono font-bold text-stone-900 text-sm">{{ $latestShipment->tracking_number ?: 'Assigned on Dispatch' }}</span>
+                </div>
+                <div>
+                    <span class="text-stone-400 font-medium block">Dispatched Date</span>
+                    <span class="font-mono text-stone-700 text-xs">{{ $latestShipment->shipped_at ? $latestShipment->shipped_at->format('M d, Y h:i A') : '—' }}</span>
+                </div>
+                <div>
+                    <span class="text-stone-400 font-medium block">
+                        {{ $latestShipment->delivered_at ? 'Delivered Date' : 'Estimated Delivery' }}
+                    </span>
+                    <span class="font-mono font-bold {{ $latestShipment->delivered_at ? 'text-emerald-700' : 'text-stone-900' }} text-xs">
+                        @if($latestShipment->delivered_at)
+                            {{ $latestShipment->delivered_at->format('M d, Y h:i A') }}
+                        @elseif($latestShipment->estimated_delivery_at)
+                            {{ $latestShipment->estimated_delivery_at->format('M d, Y') }}
+                        @else
+                            In Transit
+                        @endif
+                    </span>
+                </div>
+            </div>
+
+            @if($latestShipment->tracking_url)
+                <div class="pt-2 flex items-center justify-between flex-wrap gap-3">
+                    <p class="text-xs text-stone-500">Live courier tracking is available on the courier partner's portal.</p>
+                    <a href="{{ $latestShipment->tracking_url }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 shadow-sm transition-colors">
+                        <span>Track Package Online</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                    </a>
+                </div>
+            @endif
+        </div>
+    @endif
+
     {{-- Items Table --}}
     <div class="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200/80 shadow-sm space-y-6">
         <h2 class="text-base sm:text-lg font-bold text-stone-900 border-b border-stone-100 pb-3">Items in Order</h2>
