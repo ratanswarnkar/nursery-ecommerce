@@ -48,9 +48,17 @@
             </p>
         </div>
 
-        <div class="text-left sm:text-right">
-            <span class="text-[10px] uppercase font-bold text-stone-400 block">Total Amount</span>
-            <span class="text-2xl font-black text-emerald-950">₹{{ number_format((float) $order->grand_total, 2) }}</span>
+        <div class="flex flex-col sm:items-end gap-3">
+            <div class="text-left sm:text-right">
+                <span class="text-[10px] uppercase font-bold text-stone-400 block">Total Amount</span>
+                <span class="text-2xl font-black text-emerald-950">₹{{ number_format((float) $order->grand_total, 2) }}</span>
+            </div>
+            @if(app(\App\Services\Invoice\InvoiceService::class)->canGenerateInvoice($order))
+                <a href="{{ route('account.orders.invoice', $order->order_number) }}" target="_blank" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors shadow-sm">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Download Tax Invoice (PDF)
+                </a>
+            @endif
         </div>
     </div>
 

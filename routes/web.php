@@ -85,6 +85,7 @@ Route::middleware('web')->group(function () {
         // Customer Orders (IDOR-Protected)
         Route::get('/account/orders', [CustomerOrderController::class, 'index'])->name('account.orders.index');
         Route::get('/account/orders/{order_number}', [CustomerOrderController::class, 'show'])->name('account.orders.show');
+        Route::get('/account/orders/{order_number}/invoice', [CustomerOrderController::class, 'invoice'])->name('account.orders.invoice');
     });
 });
 
@@ -212,6 +213,7 @@ Route::middleware('web')->prefix('admin')->name('admin.')->group(function () {
         // Orders (RBAC Protected)
         Route::get('/orders', [AdminOrderController::class, 'index'])->middleware('permission:orders.view,admin')->name('orders.index');
         Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->middleware('permission:orders.view,admin')->name('orders.show');
+        Route::get('/orders/{order}/invoice', [AdminOrderController::class, 'invoice'])->middleware('permission:orders.view,admin')->name('orders.invoice');
         Route::post('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->middleware('permission:orders.update,admin')->name('orders.update-status');
         Route::post('/orders/{order}/cancel', [AdminOrderController::class, 'cancel'])->middleware('permission:orders.cancel,admin')->name('orders.cancel');
 

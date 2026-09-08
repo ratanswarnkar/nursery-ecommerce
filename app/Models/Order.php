@@ -98,4 +98,9 @@ class Order extends Model
     {
         return $this->belongsTo(Coupon::class);
     }
+
+    public function invoice(): HasOne
+    {
+        return $this->hasOne(Invoice::class);
+    }
 }

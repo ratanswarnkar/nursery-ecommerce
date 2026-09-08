@@ -7,9 +7,11 @@ use App\Enums\PaymentStatus;
 use App\Exceptions\Order\InvalidOrderStatusTransitionException;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Services\Invoice\InvoiceService;
 use App\Services\Order\OrderLifecycleService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Validation\Rules\Enum;
 use Illuminate\View\View;
 
@@ -128,5 +130,20 @@ class AdminOrderController extends Controller
             return redirect()->route('admin.orders.show', $order)
                 ->with('error', $e->getMessage());
         }
+    }
+
+    /**
+     * View or download the tax invoice PDF for an order.
+     */
+    public function invoice(Order $order, InvoiceService $invoiceService): Response
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin && $admin->can('orders.view'), 403, 'Unauthorized to view order invoices.');
+
+        abort_unless($invoiceService->canGenerateInvoice($order), 404, 'Tax invoice is not available for this order.');
+
+        $invoice = $invoiceService->getOrCreateInvoiceForOrder($order);
+
+        return $invoiceService->downloadPdfResponse($invoice);
     }
 }

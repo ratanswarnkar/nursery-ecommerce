@@ -6,6 +6,8 @@ use App\Models\Admin;
 use App\Services\Auth\OtpService;
 use App\Services\Auth\OtpServiceInterface;
 use App\Services\Auth\PhoneNumberNormalizer;
+use App\Services\Invoice\InvoiceNumberGenerator;
+use App\Services\Invoice\InvoiceService;
 use App\Services\Order\OrderLifecycleService;
 use App\Services\Payment\Contracts\PaymentGatewayInterface;
 use App\Services\Payment\PaymentGatewayManager;
@@ -47,6 +49,8 @@ class AppServiceProvider extends ServiceProvider
         });
         $this->app->singleton(PaymentService::class);
         $this->app->singleton(OrderLifecycleService::class);
+        $this->app->singleton(InvoiceNumberGenerator::class);
+        $this->app->singleton(InvoiceService::class);
     }
 
     /**
