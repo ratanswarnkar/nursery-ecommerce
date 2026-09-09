@@ -54,6 +54,11 @@ return [
             'driver' => 'null',
         ],
 
+        'razorpay' => [
+            'name' => 'Razorpay Standard Checkout',
+            'driver' => 'razorpay',
+        ],
+
         // 'pnb' => [
         //     'name' => 'PNB Internet Payment Gateway (Planned Phase 6.2-B)',
         //     'driver' => 'pnb',

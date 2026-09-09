@@ -5,6 +5,7 @@ namespace App\Services\Payment;
 use App\Exceptions\Payment\PaymentGatewayException;
 use App\Services\Payment\Contracts\PaymentGatewayInterface;
 use App\Services\Payment\Gateways\NullPaymentGateway;
+use App\Services\Payment\Gateways\RazorpayPaymentGateway;
 use Closure;
 use Illuminate\Contracts\Foundation\Application;
 
@@ -55,6 +56,7 @@ class PaymentGatewayManager
 
         return match ($name) {
             'null' => $this->app->make(NullPaymentGateway::class),
+            'razorpay' => $this->app->make(RazorpayPaymentGateway::class),
             default => throw new PaymentGatewayException(
                 message: "Unsupported payment gateway driver: [{$name}].",
                 gateway: $name

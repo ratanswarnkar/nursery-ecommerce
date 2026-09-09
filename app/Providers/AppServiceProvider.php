@@ -10,6 +10,7 @@ use App\Services\Invoice\InvoiceNumberGenerator;
 use App\Services\Invoice\InvoiceService;
 use App\Services\Order\OrderLifecycleService;
 use App\Services\Payment\Contracts\PaymentGatewayInterface;
+use App\Services\Payment\Gateways\RazorpayPaymentGateway;
 use App\Services\Payment\PaymentGatewayManager;
 use App\Services\Payment\PaymentService;
 use App\Services\Payment\PaymentTransactionNumberGenerator;
@@ -48,6 +49,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(PaymentGatewayInterface::class, function ($app) {
             return $app->make(PaymentGatewayManager::class)->gateway();
         });
+        $this->app->singleton(RazorpayPaymentGateway::class);
         $this->app->singleton(PaymentService::class);
         $this->app->singleton(OrderLifecycleService::class);
         $this->app->singleton(InvoiceNumberGenerator::class);

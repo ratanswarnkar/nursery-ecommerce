@@ -150,23 +150,42 @@
                               class="w-full px-4 py-3 rounded-2xl border border-stone-300 text-xs sm:text-sm text-stone-900 focus:ring-2 focus:ring-emerald-800 focus:border-emerald-800 transition-all">{{ old('notes') }}</textarea>
                 </div>
 
-                {{-- Step 4: Payment Foundation Notice --}}
-                <div class="bg-stone-50 rounded-3xl p-6 border border-dashed border-stone-300 space-y-3">
-                    <div class="flex items-center gap-2">
-                        <div class="p-2 rounded-xl bg-emerald-100 text-emerald-800">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                            </svg>
+                {{-- Step 4: Payment Method Notice --}}
+                @if(config('payment.default') === 'razorpay')
+                    <div class="bg-emerald-50/50 rounded-3xl p-6 border border-emerald-200/80 space-y-3">
+                        <div class="flex items-center gap-2">
+                            <div class="p-2 rounded-xl bg-emerald-100 text-emerald-800">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-bold text-stone-900">Secure Online Payment (Razorpay)</h3>
+                                <p class="text-xs text-stone-600">UPI, Cards, NetBanking, and Wallets</p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 class="text-sm font-bold text-stone-900">Order Foundation (Phase 6.1)</h3>
-                            <p class="text-xs text-stone-600">Secure Order Placement Foundation</p>
-                        </div>
+                        <p class="text-xs text-stone-500 leading-relaxed">
+                            Complete your payment securely via Razorpay Standard Checkout upon clicking Place Order. All transactions are encrypted and authentic.
+                        </p>
                     </div>
-                    <p class="text-xs text-stone-500 leading-relaxed">
-                        Placing this order creates an official pending order and securely reserves inventory from our nursery greenhouse. Payment gateway integration will be finalized in Phase 6.2.
-                    </p>
-                </div>
+                @else
+                    <div class="bg-stone-50 rounded-3xl p-6 border border-dashed border-stone-300 space-y-3">
+                        <div class="flex items-center gap-2">
+                            <div class="p-2 rounded-xl bg-emerald-100 text-emerald-800">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-bold text-stone-900">Order Foundation (Phase 6.1)</h3>
+                                <p class="text-xs text-stone-600">Secure Order Placement Foundation</p>
+                            </div>
+                        </div>
+                        <p class="text-xs text-stone-500 leading-relaxed">
+                            Placing this order creates an official pending order and securely reserves inventory from our nursery greenhouse. Payment gateway integration will be finalized in Phase 6.2.
+                        </p>
+                    </div>
+                @endif
             </div>
 
             {{-- Right Column: Order Summary (Cols 8-12) --}}
@@ -267,4 +286,111 @@
         </div>
     </form>
 </div>
+
+@if(config('payment.default') === 'razorpay')
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('checkout-form');
+    const submitBtn = document.getElementById('place-order-btn');
+    if (!form || !submitBtn) return;
+
+    form.addEventListener('submit', function (e) {
+        if (typeof Razorpay === 'undefined') {
+            return;
+        }
+
+        e.preventDefault();
+        submitBtn.disabled = true;
+        const originalHtml = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<span>Processing Order...</span>';
+
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': formData.get('_token')
+            },
+            body: formData
+        })
+        .then(async res => {
+            const data = await res.json();
+            if (!res.ok) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalHtml;
+                if (data.errors) {
+                    const firstKey = Object.keys(data.errors)[0];
+                    alert(data.errors[firstKey][0]);
+                } else {
+                    alert(data.message || 'An error occurred during checkout.');
+                }
+                return;
+            }
+
+            if (data.gateway === 'razorpay' && data.razorpay_order_id) {
+                const options = {
+                    key: data.key_id,
+                    amount: data.amount,
+                    currency: data.currency || 'INR',
+                    name: 'Sugandha Farms and Nursery',
+                    description: 'Order #' + data.order_number,
+                    order_id: data.razorpay_order_id,
+                    prefill: {
+                        name: data.customer_name,
+                        email: data.customer_email,
+                        contact: data.customer_phone
+                    },
+                    theme: { color: '#065f46' },
+                    handler: function (response) {
+                        submitBtn.innerHTML = '<span>Verifying payment with bank...</span>';
+                        fetch(@json(route('checkout.payment.verify')), {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': formData.get('_token')
+                            },
+                            body: JSON.stringify({
+                                transaction_number: data.transaction_number,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_signature: response.razorpay_signature
+                            })
+                        })
+                        .then(r => r.json())
+                        .then(verifyData => {
+                            if (verifyData.success && verifyData.redirect_url) {
+                                window.location.href = verifyData.redirect_url;
+                            } else {
+                                window.location.href = '/checkout/payment/' + data.order_number;
+                            }
+                        })
+                        .catch(() => {
+                            window.location.href = '/checkout/payment/' + data.order_number;
+                        });
+                    },
+                    modal: {
+                        ondismiss: function () {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalHtml;
+                            window.location.href = '/checkout/payment/' + data.order_number;
+                        }
+                    }
+                };
+
+                const rzp = new Razorpay(options);
+                rzp.open();
+            } else if (data.redirect_url) {
+                window.location.href = data.redirect_url;
+            }
+        })
+        .catch(() => {
+            form.submit();
+        });
+    });
+});
+</script>
+@endif
 @endsection
