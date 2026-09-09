@@ -244,4 +244,75 @@ class ShipmentService
             return $lockedShipment;
         });
     }
+
+    /**
+     * Update tracking and carrier information for an existing shipment.
+     * Strictly restricts updates to mutable tracking fields only.
+     */
+    public function updateTrackingInformation(
+        Shipment $shipment,
+        array $data,
+        ?Admin $admin = null
+    ): Shipment {
+        return DB::transaction(function () use ($shipment, $data, $admin) {
+            /** @var Shipment $lockedShipment */
+            $lockedShipment = Shipment::where('id', $shipment->id)->lockForUpdate()->firstOrFail();
+
+            $oldValues = [
+                'carrier' => $lockedShipment->carrier,
+                'tracking_number' => $lockedShipment->tracking_number,
+                'tracking_url' => $lockedShipment->tracking_url,
+                'estimated_delivery_at' => $lockedShipment->estimated_delivery_at?->toIso8601String(),
+                'notes' => $lockedShipment->notes,
+            ];
+
+            $carrier = array_key_exists('carrier', $data)
+                ? (filled($data['carrier']) ? trim($data['carrier']) : null)
+                : $lockedShipment->carrier;
+
+            $trackingNumber = array_key_exists('tracking_number', $data)
+                ? (filled($data['tracking_number']) ? trim($data['tracking_number']) : null)
+                : $lockedShipment->tracking_number;
+
+            $trackingUrl = array_key_exists('tracking_url', $data)
+                ? (filled($data['tracking_url']) ? trim($data['tracking_url']) : null)
+                : $lockedShipment->tracking_url;
+
+            $estimatedDeliveryAt = array_key_exists('estimated_delivery_at', $data)
+                ? (filled($data['estimated_delivery_at']) ? Carbon::parse($data['estimated_delivery_at']) : null)
+                : $lockedShipment->estimated_delivery_at;
+
+            $notes = array_key_exists('notes', $data)
+                ? (filled($data['notes']) ? trim($data['notes']) : null)
+                : $lockedShipment->notes;
+
+            $lockedShipment->update([
+                'carrier' => $carrier,
+                'tracking_number' => $trackingNumber,
+                'tracking_url' => $trackingUrl,
+                'estimated_delivery_at' => $estimatedDeliveryAt,
+                'notes' => $notes,
+            ]);
+
+            $this->auditLogger->logAdminEvent(
+                'order.shipment_tracking_updated',
+                $admin,
+                [
+                    'order_id' => $lockedShipment->order_id,
+                    'shipment_id' => $lockedShipment->id,
+                    'old' => $oldValues,
+                    'new' => [
+                        'carrier' => $lockedShipment->carrier,
+                        'tracking_number' => $lockedShipment->tracking_number,
+                        'tracking_url' => $lockedShipment->tracking_url,
+                        'estimated_delivery_at' => $lockedShipment->estimated_delivery_at?->toIso8601String(),
+                        'notes' => $lockedShipment->notes,
+                    ],
+                ],
+                $lockedShipment
+            );
+
+            return $lockedShipment;
+        });
+    }
 }

@@ -108,6 +108,27 @@
                 </div>
             </div>
 
+            @if(!empty($latestShipment->items_snapshot))
+                <div class="pt-3 border-t border-stone-100 space-y-2">
+                    <span class="text-xs font-bold text-stone-700 block uppercase tracking-wider">Items Included in Shipment</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        @foreach($latestShipment->items_snapshot as $shippedItem)
+                            <div class="flex items-center justify-between p-2.5 rounded-xl bg-stone-50 border border-stone-100 text-xs">
+                                <div class="min-w-0 pr-2">
+                                    <span class="font-bold text-stone-800 block truncate">{{ $shippedItem['product_name'] ?? 'Botanical Item' }}</span>
+                                    @if(!empty($shippedItem['variant_name']))
+                                        <span class="text-stone-500 text-[11px] block">{{ $shippedItem['variant_name'] }}</span>
+                                    @endif
+                                </div>
+                                <span class="font-bold text-emerald-800 shrink-0 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
+                                    Qty: {{ $shippedItem['quantity'] ?? 1 }}
+                                </span>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
             @if($latestShipment->tracking_url)
                 <div class="pt-2 flex items-center justify-between flex-wrap gap-3">
                     <p class="text-xs text-stone-500">Live courier tracking is available on the courier partner's portal.</p>

@@ -262,6 +262,17 @@
 
             @if($activeShipment)
                 <div style="display: flex; flex-direction: column; gap: 0.6rem; font-size: 0.8125rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 0.4rem 0.6rem; border-radius: 0.375rem;">
+                        <span style="font-weight: 700; color: #166534;">Shipment #{{ $activeShipment->id }}</span>
+                        <span class="badge" style="background: #dcfce7; color: #15803d; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; padding: 0.15rem 0.45rem; border-radius: 9999px;">
+                            {{ $activeShipment->shipping_status->value }}
+                        </span>
+                    </div>
+
+                    <div>
+                        <span style="color: #6b7280;">Order Number:</span>
+                        <span style="font-family: monospace; font-weight: 600; color: #111827;">#{{ $order->order_number }}</span>
+                    </div>
                     <div>
                         <span style="color: #6b7280;">Carrier / Courier:</span>
                         <span style="font-weight: 600; color: #111827;">{{ $activeShipment->carrier ?: 'Standard Delivery' }}</span>
@@ -270,24 +281,26 @@
                         <span style="color: #6b7280;">Tracking / AWB #:</span>
                         <span style="font-family: monospace; font-weight: 700; color: #111827;">{{ $activeShipment->tracking_number ?: 'Not assigned' }}</span>
                     </div>
+
                     @if($activeShipment->tracking_url)
-                        <div>
-                            <span style="color: #6b7280;">Tracking Link:</span>
-                            <a href="{{ $activeShipment->tracking_url }}" target="_blank" rel="noopener noreferrer" style="color: #059669; font-weight: 600; text-decoration: underline; font-size: 0.75rem; word-break: break-all;">
-                                Track on Courier Portal &rarr;
+                        <div style="margin: 0.25rem 0;">
+                            <a href="{{ $activeShipment->tracking_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.75rem; padding: 0.3rem 0.6rem; color: #047857; text-decoration: none; border: 1px solid #a7f3d0; background: #ecfdf5; border-radius: 0.375rem; font-weight: 600;">
+                                <svg style="width: 0.85rem; height: 0.85rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                <span>Track Package</span>
                             </a>
                         </div>
                     @endif
+
                     <div>
                         <span style="color: #6b7280;">Dispatched At:</span>
                         <span style="font-family: monospace; font-size: 0.75rem;">{{ $activeShipment->shipped_at ? $activeShipment->shipped_at->format('M d, Y h:i A') : '—' }}</span>
                     </div>
-                    @if($activeShipment->estimated_delivery_at)
-                        <div>
-                            <span style="color: #6b7280;">Est. Delivery:</span>
-                            <span style="font-family: monospace; font-size: 0.75rem; color: #4338ca;">{{ $activeShipment->estimated_delivery_at->format('M d, Y') }}</span>
-                        </div>
-                    @endif
+                    <div>
+                        <span style="color: #6b7280;">Est. Delivery:</span>
+                        <span style="font-family: monospace; font-size: 0.75rem; color: #4338ca;">
+                            {{ $activeShipment->estimated_delivery_at ? $activeShipment->estimated_delivery_at->format('M d, Y') : '—' }}
+                        </span>
+                    </div>
                     @if($activeShipment->delivered_at)
                         <div style="background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; padding: 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 600;">
                             ✓ Delivered on {{ $activeShipment->delivered_at->format('M d, Y h:i A') }}
@@ -295,11 +308,82 @@
                     @endif
                     @if($activeShipment->notes)
                         <div style="background: #f9fafb; padding: 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; color: #4b5563;">
-                            <span style="font-weight: 600;">Notes:</span> {{ $activeShipment->notes }}
+                            <span style="font-weight: 600;">Shipment Notes:</span> {{ $activeShipment->notes }}
                         </div>
                     @endif
 
-                    {{-- Admin Milestone Actions for Shipped orders --}}
+                    {{-- Shipped Item Snapshot --}}
+                    @if(!empty($activeShipment->items_snapshot))
+                        <div style="margin-top: 0.5rem; border-top: 1px dashed #e5e7eb; padding-top: 0.6rem;">
+                            <h4 style="font-size: 0.75rem; font-weight: 700; color: #374151; margin-bottom: 0.4rem; text-transform: uppercase;">
+                                Shipped Items ({{ count($activeShipment->items_snapshot) }})
+                            </h4>
+                            <div style="display: flex; flex-direction: column; gap: 0.35rem;">
+                                @foreach($activeShipment->items_snapshot as $snapItem)
+                                    <div style="display: flex; justify-content: space-between; align-items: center; background: #f9fafb; padding: 0.4rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem;">
+                                        <div>
+                                            <span style="font-weight: 600; color: #111827;">{{ $snapItem['product_name'] ?? 'Product' }}</span>
+                                            @if(!empty($snapItem['variant_name']))
+                                                <span style="color: #6b7280;">({{ $snapItem['variant_name'] }})</span>
+                                            @endif
+                                            @if(!empty($snapItem['sku']))
+                                                <span style="font-family: monospace; color: #9ca3af; font-size: 0.7rem;">[{{ $snapItem['sku'] }}]</span>
+                                            @endif
+                                        </div>
+                                        <span style="font-weight: 700; color: #065f46;">Qty: {{ $snapItem['quantity'] ?? 1 }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- Edit Tracking Information Form (Authorized Admins) --}}
+                    @can('orders.update', 'admin')
+                        <details style="margin-top: 0.5rem; border: 1px solid #e5e7eb; border-radius: 0.375rem; padding: 0.5rem; background: #f8fafc;">
+                            <summary style="font-size: 0.75rem; font-weight: 700; color: #0f766e; cursor: pointer; user-select: none;">
+                                Edit Tracking Information
+                            </summary>
+                            <form method="POST" action="{{ route('admin.orders.shipments.update', [$order, $activeShipment]) }}" style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.45rem;">
+                                @csrf
+                                @method('PUT')
+                                <div>
+                                    <label style="display: block; font-size: 0.7rem; font-weight: 600; color: #374151; margin-bottom: 0.15rem;">
+                                        Carrier / Courier:
+                                    </label>
+                                    <input type="text" name="carrier" value="{{ old('carrier', $activeShipment->carrier) }}" placeholder="e.g. BlueDart, Delhivery" style="width: 100%; padding: 0.35rem 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.75rem;">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 0.7rem; font-weight: 600; color: #374151; margin-bottom: 0.15rem;">
+                                        Tracking / AWB Number:
+                                    </label>
+                                    <input type="text" name="tracking_number" value="{{ old('tracking_number', $activeShipment->tracking_number) }}" placeholder="e.g. BD123456789IN" style="width: 100%; padding: 0.35rem 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.75rem; font-family: monospace;">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 0.7rem; font-weight: 600; color: #374151; margin-bottom: 0.15rem;">
+                                        Tracking URL:
+                                    </label>
+                                    <input type="url" name="tracking_url" value="{{ old('tracking_url', $activeShipment->tracking_url) }}" placeholder="https://track.courier.com/..." style="width: 100%; padding: 0.35rem 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.75rem;">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 0.7rem; font-weight: 600; color: #374151; margin-bottom: 0.15rem;">
+                                        Estimated Delivery Date:
+                                    </label>
+                                    <input type="date" name="estimated_delivery_at" value="{{ old('estimated_delivery_at', $activeShipment->estimated_delivery_at?->format('Y-m-d')) }}" style="width: 100%; padding: 0.35rem 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.75rem;">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 0.7rem; font-weight: 600; color: #374151; margin-bottom: 0.15rem;">
+                                        Shipment Notes:
+                                    </label>
+                                    <input type="text" name="notes" value="{{ old('notes', $activeShipment->notes) }}" placeholder="e.g. Fragile botanical packaging" style="width: 100%; padding: 0.35rem 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.75rem;">
+                                </div>
+                                <button type="submit" class="btn btn-secondary" style="width: 100%; font-size: 0.75rem; padding: 0.4rem; margin-top: 0.25rem;">
+                                    Save Tracking Info
+                                </button>
+                            </form>
+                        </details>
+                    @endcan
+
+                    {{-- Admin Milestone Actions for Shipped orders (Step 2-E) --}}
                     @can('orders.update', 'admin')
                         @if($order->status === \App\Enums\OrderStatus::SHIPPED)
                             <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem; border-top: 1px dashed #e5e7eb; padding-top: 0.75rem;">

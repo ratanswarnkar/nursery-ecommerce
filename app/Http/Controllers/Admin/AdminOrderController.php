@@ -8,6 +8,7 @@ use App\Exceptions\Order\InvalidOrderStatusTransitionException;
 use App\Exceptions\Shipping\IneligibleForShipmentException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\CreateShipmentRequest;
+use App\Http\Requests\Admin\UpdateShipmentTrackingRequest;
 use App\Models\Order;
 use App\Models\Shipment;
 use App\Services\Invoice\InvoiceService;
@@ -241,5 +242,29 @@ class AdminOrderController extends Controller
             return redirect()->route('admin.orders.show', $order)
                 ->with('error', $e->getMessage());
         }
+    }
+
+    /**
+     * Update tracking information for an existing shipment.
+     */
+    public function updateShipment(
+        UpdateShipmentTrackingRequest $request,
+        Order $order,
+        Shipment $shipment,
+        ShipmentService $shipmentService
+    ): RedirectResponse {
+        $admin = auth('admin')->user();
+        abort_unless($admin && $admin->can('orders.update'), 403, 'Unauthorized to update shipment.');
+
+        abort_unless((int) $shipment->order_id === (int) $order->id, 404);
+
+        $shipmentService->updateTrackingInformation(
+            shipment: $shipment,
+            data: $request->validated(),
+            admin: $admin
+        );
+
+        return redirect()->route('admin.orders.show', $order)
+            ->with('success', "Shipment tracking information for order #{$order->order_number} has been updated.");
     }
 }
