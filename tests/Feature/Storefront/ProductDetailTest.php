@@ -160,6 +160,8 @@ test('PDP displays authentic Delhi NCR delivery information', function () {
     $response->assertSee('Delhi NCR');
     $response->assertSee('3 days');
     $response->assertSee('1,000');
+    $response->assertSee('delivery charge applies at checkout');
+    $response->assertDontSee('₹99');
 });
 
 test('PDP variant matrix reflects low stock when stock is at or below safety stock', function () {

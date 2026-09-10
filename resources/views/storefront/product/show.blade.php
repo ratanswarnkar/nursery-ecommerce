@@ -325,7 +325,7 @@
                     </li>
                     <li class="flex items-start gap-2">
                         <span class="text-emerald-700 font-bold shrink-0">•</span>
-                        <span>Orders <strong>ABOVE ₹1,000</strong> qualify for <strong>FREE delivery</strong> (standard ₹99 applies on orders of ₹1,000 or below at checkout).</span>
+                        <span>Orders <strong>ABOVE ₹1,000</strong> qualify for <strong>FREE delivery</strong> (delivery charge applies at checkout).</span>
                     </li>
                 </ul>
             </div>
