@@ -93,11 +93,16 @@ class OrderCalculationService
 
     /**
      * Explicit calculation boundary for shipping charges.
-     * In Phase 6.1, defaults to 0.00 without hardcoding business assumptions.
+     * Business rule: Orders ABOVE ₹1,000 qualify for FREE delivery (strictly subtotal > 1000.00).
+     * Exactly ₹1,000 is NOT free.
+     * For orders at or below ₹1,000, defaults to configured flat rate without inventing arbitrary fees.
      */
     public function calculateShipping(string $subtotal, ?array $shippingAddress = null): string
     {
-        // Phase 6.1 boundary: Default ₹0.00 shipping until business rules are finalized
+        if (bccomp($subtotal, '1000.00', 2) > 0) {
+            return '0.00';
+        }
+
         return config('ecommerce.shipping.flat_rate', '0.00');
     }
 

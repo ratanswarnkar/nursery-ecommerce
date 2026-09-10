@@ -79,6 +79,9 @@
             </div>
         </div>
     @else
+        {{-- Delivery Progress Indicator (Scope A & G) --}}
+        <x-storefront.free-delivery-progress :subtotal="$subtotal" />
+
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {{-- Cart Items List (Cols 1-8) --}}
             <div class="lg:col-span-8 bg-white rounded-3xl border border-stone-200/80 shadow-sm overflow-hidden divide-y divide-stone-100">
@@ -203,15 +206,41 @@
                         <span class="font-semibold text-stone-900">₹{{ number_format((float) $subtotal, 2) }}</span>
                     </div>
 
-                    <div class="flex items-center justify-between text-stone-600">
-                        <span>Estimated Shipping</span>
-                        <span class="text-xs font-semibold text-emerald-800">Calculated at checkout</span>
+                    <div class="flex items-start justify-between text-stone-600">
+                        <div>
+                            <span>Estimated Shipping</span>
+                            <span class="block text-[11px] text-stone-500">
+                                @if(bccomp((string) $subtotal, '1000.00', 2) > 0)
+                                    Orders ABOVE ₹1,000 qualify for FREE delivery
+                                @else
+                                    Free delivery on orders ABOVE ₹1,000
+                                @endif
+                            </span>
+                        </div>
+                        <div class="text-right">
+                            @if(bccomp((string) $subtotal, '1000.00', 2) > 0)
+                                <span class="font-bold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded text-xs">FREE</span>
+                            @else
+                                <span class="text-xs font-semibold text-stone-600">Calculated at checkout</span>
+                            @endif
+                        </div>
                     </div>
 
                     <div class="pt-3 border-t border-stone-200 flex items-baseline justify-between">
                         <span class="font-bold text-stone-900">Estimated Total</span>
                         <span class="text-2xl font-extrabold text-emerald-950 tracking-tight">₹{{ number_format((float) $subtotal, 2) }}</span>
                     </div>
+                </div>
+
+                {{-- Delivery Transparency Badge --}}
+                <div class="p-3.5 rounded-2xl bg-stone-50 border border-stone-200 text-xs text-stone-600 space-y-1">
+                    <div class="flex items-center gap-1.5 font-bold text-stone-800">
+                        <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <span>Delhi NCR Delivery Only</span>
+                    </div>
+                    <p class="text-[11px] text-stone-500 leading-relaxed">Delivered within 3 days directly from our nursery greenhouse.</p>
                 </div>
 
                 @if($has_issues)

@@ -85,6 +85,30 @@
                             </a>
                         </div>
                     @else
+                        @php
+                            $hasDelhiNcrAddress = $addresses->contains(fn ($a) => $a->isDelhiNcr());
+                        @endphp
+
+                        @if(! $hasDelhiNcrAddress)
+                            <div class="p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 text-xs sm:text-sm space-y-2">
+                                <div class="flex items-center gap-2 font-bold text-amber-950">
+                                    <svg class="w-5 h-5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                    <span>No Eligible Delhi NCR Address Found</span>
+                                </div>
+                                <p class="text-xs text-amber-800">
+                                    All your saved addresses are located outside Delhi NCR. We currently deliver exclusively within Delhi NCR. Please add a Delhi NCR address to place this order.
+                                </p>
+                                <div>
+                                    <a href="{{ route('account.addresses.index') }}"
+                                       class="inline-flex items-center px-3.5 py-2 rounded-xl bg-amber-800 hover:bg-amber-900 text-white font-bold text-xs shadow-sm transition-colors">
+                                        + Add Delhi NCR Address
+                                    </a>
+                                </div>
+                            </div>
+                        @endif
+
                         <div class="space-y-3">
                             @foreach($addresses as $addr)
                                 @php
@@ -260,16 +284,23 @@
                             <span class="font-semibold text-stone-900">₹{{ number_format((float) $pricing['tax_amount'], 2) }}</span>
                         </div>
 
-                        <div class="flex items-center justify-between text-stone-600">
-                            <span>Delivery / Shipping</span>
-                            @if(bccomp($pricing['shipping_amount'], '0.00', 2) === 0)
-                                <span class="font-semibold text-emerald-800">₹0.00</span>
-                            @else
-                                <span class="font-semibold text-stone-900">₹{{ number_format((float) $pricing['shipping_amount'], 2) }}</span>
-                            @endif
+                        <div class="flex items-start justify-between text-stone-600">
+                            <div>
+                                <span>Delivery / Shipping</span>
+                                <span class="block text-[11px] text-stone-500">Delhi NCR only &bull; within 3 days</span>
+                            </div>
+                            <div class="text-right">
+                                @if(bccomp((string) $pricing['subtotal'], '1000.00', 2) > 0 && bccomp((string) $pricing['shipping_amount'], '0.00', 2) === 0)
+                                    <span class="font-bold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded text-xs">FREE</span>
+                                @elseif(bccomp((string) $pricing['shipping_amount'], '0.00', 2) === 0)
+                                    <span class="font-semibold text-stone-900">₹0.00</span>
+                                @else
+                                    <span class="font-semibold text-stone-900">₹{{ number_format((float) $pricing['shipping_amount'], 2) }}</span>
+                                @endif
+                            </div>
                         </div>
 
-                        @if(bccomp($pricing['discount_amount'], '0.00', 2) > 0)
+                        @if(bccomp((string) $pricing['discount_amount'], '0.00', 2) > 0)
                             <div class="flex items-center justify-between text-emerald-700">
                                 <span>Discount</span>
                                 <span class="font-semibold">-₹{{ number_format((float) $pricing['discount_amount'], 2) }}</span>
@@ -281,6 +312,46 @@
                             <span class="text-2xl font-black text-emerald-950 tracking-tight">₹{{ number_format((float) $pricing['grand_total'], 2) }}</span>
                         </div>
                     </div>
+
+                    {{-- Delivery Transparency Highlight --}}
+                    @if(bccomp((string) $pricing['subtotal'], '1000.00', 2) > 0)
+                        <div class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 flex items-start gap-2.5">
+                            <span class="text-base shrink-0 mt-0.5" aria-hidden="true">🎉</span>
+                            <div>
+                                <span class="font-bold text-emerald-950">You qualify for FREE delivery</span>
+                                <p class="text-[11px] text-emerald-800 font-medium mt-0.5">
+                                    Orders ABOVE ₹1,000 qualify for free delivery &bull; Delhi NCR only &bull; Delivery within 3 days
+                                </p>
+                            </div>
+                        </div>
+                    @elseif(bccomp((string) $pricing['subtotal'], '1000.00', 2) === 0)
+                        <div class="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start gap-2.5">
+                            <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                            <div>
+                                <span class="font-bold text-amber-950">Add a little more to qualify for FREE delivery</span>
+                                <p class="text-[11px] text-amber-800 font-medium mt-0.5">
+                                    Orders ABOVE ₹1,000 qualify for free delivery &bull; Delhi NCR only &bull; Delivery within 3 days
+                                </p>
+                            </div>
+                        </div>
+                    @else
+                        @php
+                            $remainingForFree = bcsub('1000.00', (string) $pricing['subtotal'], 2);
+                        @endphp
+                        <div class="p-3.5 rounded-2xl bg-stone-50 border border-stone-200 text-xs text-stone-700 flex items-start gap-2.5">
+                            <svg class="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <div>
+                                <span class="font-bold text-stone-900">Add ₹{{ number_format((float) $remainingForFree, 2) }} more for FREE delivery</span>
+                                <p class="text-[11px] text-stone-600 font-medium mt-0.5">
+                                    Orders ABOVE ₹1,000 qualify for free delivery &bull; Delhi NCR only &bull; Delivery within 3 days
+                                </p>
+                            </div>
+                        </div>
+                    @endif
 
                     {{-- Submit CTA --}}
                     @if($addresses->isEmpty())
