@@ -17,16 +17,12 @@
 
 @section('content')
 <div class="space-y-6" x-data="{ mobileFiltersOpen: false }">
-    @php
-        $crumbs = [['name' => 'Shop', 'url' => route('shop.index')]];
-        foreach($ancestors as $ancestor) {
-            $crumbs[] = ['name' => $ancestor->name, 'url' => route('categories.show', $ancestor->slug)];
-        }
-        $crumbs[] = ['name' => $category->name, 'url' => ''];
-    @endphp
-
     {{-- Breadcrumbs --}}
-    <x-storefront.breadcrumbs :breadcrumbs="$crumbs" />
+    <x-storefront.breadcrumbs :breadcrumbs="$breadcrumbs ?? [
+        ['name' => 'Home', 'url' => route('home')],
+        ['name' => 'Shop', 'url' => route('shop.index')],
+        ['name' => $category->name, 'url' => '']
+    ]" />
 
     {{-- Category Banner --}}
     <div class="p-6 sm:p-10 rounded-3xl bg-gradient-to-r from-emerald-950 via-emerald-900 to-forest-900 text-white shadow-lg relative overflow-hidden">

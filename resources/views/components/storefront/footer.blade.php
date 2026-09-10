@@ -83,12 +83,16 @@
             <!-- Col 2: Categories -->
             <div>
                 <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-3">Popular Categories</h4>
+                @php
+                    $succulentCat = \App\Models\Category::where('is_active', true)->whereIn('slug', ['succulents-cacti', 'succulents'])->first();
+                    $succulentUrl = $succulentCat ? route('categories.show', $succulentCat->slug) : route('categories.show', 'indoor-plants');
+                @endphp
                 <ul class="space-y-2 text-xs text-slate-400">
-                    <li><a href="{{ route('shop.index') }}" class="hover:text-emerald-400 transition">Indoor Air Purifiers</a></li>
-                    <li><a href="{{ route('shop.index') }}" class="hover:text-emerald-400 transition">Flowering Saplings</a></li>
-                    <li><a href="{{ route('shop.index') }}" class="hover:text-emerald-400 transition">Succulents & Cacti</a></li>
-                    <li><a href="{{ route('shop.index') }}" class="hover:text-emerald-400 transition">Terracotta Planters</a></li>
-                    <li><a href="{{ route('shop.index') }}" class="hover:text-emerald-400 transition">Organic Potting Mix</a></li>
+                    <li><a href="{{ route('categories.show', 'air-purifying') }}" class="hover:text-emerald-400 transition">Indoor Air Purifiers</a></li>
+                    <li><a href="{{ route('categories.show', 'flowering-plants') }}" class="hover:text-emerald-400 transition">Flowering Saplings</a></li>
+                    <li><a href="{{ $succulentUrl }}" class="hover:text-emerald-400 transition">Succulents & Cacti</a></li>
+                    <li><a href="{{ route('categories.show', 'terracotta-pots') }}" class="hover:text-emerald-400 transition">Terracotta Planters</a></li>
+                    <li><a href="{{ route('categories.show', 'plant-care') }}" class="hover:text-emerald-400 transition">Organic Potting Mix</a></li>
                 </ul>
             </div>
 

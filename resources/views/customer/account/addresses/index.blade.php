@@ -31,6 +31,18 @@
         </button>
     </div>
 
+    {{-- Delhi NCR Service Area Notice --}}
+    <div class="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200/90 flex items-start gap-3">
+        <div class="p-1.5 rounded-xl bg-emerald-100 text-emerald-800 shrink-0 mt-0.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        </div>
+        <div class="text-xs sm:text-sm text-emerald-950 leading-relaxed">
+            <span class="font-bold">Important Delivery Notice:</span> Delivery available only within Delhi NCR. Only addresses with verified Delhi NCR destinations can be selected for plant dispatch at checkout.
+        </div>
+    </div>
+
     @if(session('success'))
         <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm flex items-center gap-2">
             <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -59,7 +71,7 @@
             </div>
             <h2 class="text-xl font-bold text-stone-900">No Addresses Saved</h2>
             <p class="text-sm text-stone-500 max-w-md mx-auto">
-                Add your home or garden delivery address for faster checkout when Phase 6 launches.
+                Add your home or garden delivery address for faster checkout. Delivery available only within Delhi NCR.
             </p>
             <div class="pt-2">
                 <button type="button"
@@ -79,14 +91,26 @@
                                 {{ $addr->address_type->value }}
                             </span>
 
-                            @if($addr->is_default)
-                                <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                                    </svg>
-                                    Default Delivery
-                                </span>
-                            @endif
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                @if($addr->is_default)
+                                    <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                        </svg>
+                                        Default Delivery
+                                    </span>
+                                @endif
+
+                                @if($addr->isDelhiNcr())
+                                    <span class="inline-flex items-center text-[10px] font-bold text-emerald-800 bg-emerald-100/70 px-2 py-0.5 rounded-full">
+                                        Delhi NCR Eligible
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center text-[10px] font-bold text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-full" title="Delivery available only within Delhi NCR">
+                                        Outside Delhi NCR
+                                    </span>
+                                @endif
+                            </div>
                         </div>
 
                         <div>
@@ -219,6 +243,10 @@
                         <input type="text" id="addr-postal" name="postal_code" :value="editingAddress ? editingAddress.postal_code : ''" required class="w-full px-3 py-2 rounded-xl border border-stone-300 text-xs focus:ring-1 focus:ring-emerald-600">
                     </div>
                 </div>
+
+                <p class="text-[11px] text-stone-500">
+                    <strong>Service Area Note:</strong> Delivery available only within Delhi NCR (Delhi, Gurugram, Faridabad, Noida, Greater Noida, Ghaziabad).
+                </p>
 
                 <div class="pt-2">
                     <label class="flex items-center gap-2 cursor-pointer select-none">

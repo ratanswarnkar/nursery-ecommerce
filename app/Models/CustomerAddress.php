@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\AddressType;
+use App\Services\Shipping\DelhiNcrEligibilityService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -36,5 +37,10 @@ class CustomerAddress extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    public function isDelhiNcr(): bool
+    {
+        return app(DelhiNcrEligibilityService::class)->isEligible($this);
     }
 }

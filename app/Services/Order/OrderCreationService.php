@@ -14,6 +14,7 @@ use App\Models\OrderStatusHistory;
 use App\Services\Audit\AuditLogger;
 use App\Services\Cart\CartService;
 use App\Services\Inventory\InventoryService;
+use App\Services\Shipping\DelhiNcrEligibilityService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -24,7 +25,8 @@ class OrderCreationService
         protected OrderCalculationService $calculationService,
         protected InventoryService $inventoryService,
         protected CartService $cartService,
-        protected AuditLogger $auditLogger
+        protected AuditLogger $auditLogger,
+        protected DelhiNcrEligibilityService $eligibilityService
     ) {}
 
     /**
@@ -56,6 +58,12 @@ class OrderCreationService
             if (! $shippingAddress) {
                 throw ValidationException::withMessages([
                     'shipping_address_id' => ['Please select a valid delivery address from your address book.'],
+                ]);
+            }
+
+            if (! $this->eligibilityService->isEligible($shippingAddress)) {
+                throw ValidationException::withMessages([
+                    'shipping_address_id' => ['Delivery is currently available only within Delhi NCR.'],
                 ]);
             }
 

@@ -56,6 +56,21 @@
                         </a>
                     </div>
 
+                    {{-- Delhi NCR Delivery Policy Notice --}}
+                    <div class="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 space-y-2 text-xs">
+                        <div class="flex items-center gap-2 font-bold text-emerald-900">
+                            <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>Delivery Highlights</span>
+                        </div>
+                        <ul class="text-emerald-950 font-medium space-y-1 ml-6 list-disc">
+                            <li>Delivery available only within Delhi NCR.</li>
+                            <li>Delivery is expected within 3 days.</li>
+                            <li>Orders ABOVE ₹1,000 qualify for FREE delivery.</li>
+                        </ul>
+                    </div>
+
                     @if($addresses->isEmpty())
                         <div class="p-6 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-center space-y-3">
                             <svg class="w-8 h-8 text-amber-600 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -89,11 +104,19 @@
                                                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800">Default</span>
                                             @endif
                                             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-stone-100 text-stone-600">{{ ucfirst($addr->address_type?->value ?? 'home') }}</span>
+                                            @if($addr->isDelhiNcr())
+                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800">Delhi NCR</span>
+                                            @else
+                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800" title="Delivery available only within Delhi NCR">Outside Delhi NCR</span>
+                                            @endif
                                         </div>
                                         <p class="text-xs text-stone-600 leading-relaxed">
                                             {{ $addr->address_line_1 }}@if($addr->address_line_2), {{ $addr->address_line_2 }}@endif,
                                             {{ $addr->city }}, {{ $addr->state }} - <span class="font-mono">{{ $addr->postal_code }}</span>
                                         </p>
+                                        @if(!$addr->isDelhiNcr())
+                                            <p class="text-[11px] text-amber-700 font-semibold mt-1">This address is outside Delhi NCR and cannot be used for delivery.</p>
+                                        @endif
                                     </div>
                                 </label>
                             @endforeach
@@ -169,7 +192,7 @@
                         </p>
                     </div>
                 @else
-                    <div class="bg-stone-50 rounded-3xl p-6 border border-dashed border-stone-300 space-y-3">
+                    <div class="bg-emerald-50/50 rounded-3xl p-6 border border-emerald-200/80 space-y-3">
                         <div class="flex items-center gap-2">
                             <div class="p-2 rounded-xl bg-emerald-100 text-emerald-800">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -177,12 +200,12 @@
                                 </svg>
                             </div>
                             <div>
-                                <h3 class="text-sm font-bold text-stone-900">Order Foundation (Phase 6.1)</h3>
-                                <p class="text-xs text-stone-600">Secure Order Placement Foundation</p>
+                                <h3 class="text-sm font-bold text-stone-900">Order Verification & Dispatch</h3>
+                                <p class="text-xs text-stone-600">Verified Greenhouse Reservation</p>
                             </div>
                         </div>
                         <p class="text-xs text-stone-500 leading-relaxed">
-                            Placing this order creates an official pending order and securely reserves inventory from our nursery greenhouse. Payment gateway integration will be finalized in Phase 6.2.
+                            Placing your order securely reserves inventory from our nursery greenhouse and schedules root-hydrated dispatch to your Delhi NCR destination.
                         </p>
                     </div>
                 @endif

@@ -44,7 +44,22 @@
     </div>
 
     {{-- Navigation Cards / Shortcuts --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {{-- Orders Shortcut --}}
+        <a href="{{ route('account.orders.index') }}"
+           class="group p-6 rounded-3xl bg-white border border-stone-200/80 hover:border-emerald-500 hover:shadow-lg hover:shadow-emerald-900/5 transition-all">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-800 flex items-center justify-center mb-4 group-hover:bg-emerald-800 group-hover:text-white transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                </svg>
+            </div>
+            <h3 class="font-bold text-stone-900 text-lg group-hover:text-emerald-800 transition-colors">My Orders</h3>
+            <p class="text-xs text-stone-500 mt-1">Track greenhouse shipments, view invoices, and request returns.</p>
+            <span class="inline-flex items-center text-xs font-semibold text-emerald-800 mt-4 group-hover:translate-x-1 transition-transform">
+                View Orders &rarr;
+            </span>
+        </a>
+
         {{-- Profile Shortcut --}}
         <a href="{{ route('account.profile') }}"
            class="group p-6 rounded-3xl bg-white border border-stone-200/80 hover:border-emerald-500 hover:shadow-lg hover:shadow-emerald-900/5 transition-all">

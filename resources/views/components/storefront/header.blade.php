@@ -112,6 +112,7 @@
                                 <p class="text-sm font-bold text-slate-900 truncate">{{ auth('customer')->user()->phone }}</p>
                             </div>
                             <a href="{{ route('customer.home') }}" class="block px-4 py-2 text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 font-medium">Dashboard</a>
+                            <a href="{{ route('account.orders.index') }}" class="block px-4 py-2 text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 font-medium">My Orders</a>
                             <a href="{{ route('account.profile') }}" class="block px-4 py-2 text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 font-medium">My Profile</a>
                             <a href="{{ route('account.addresses.index') }}" class="block px-4 py-2 text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 font-medium">Saved Addresses</a>
                             <div class="border-t border-slate-100 my-1"></div>
@@ -233,6 +234,7 @@
                     </a>
                     @if(auth('customer')->check())
                         <a href="{{ route('customer.home') }}" class="block px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700">Customer Dashboard</a>
+                        <a href="{{ route('account.orders.index') }}" class="block px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700">My Orders</a>
                         <a href="{{ route('account.profile') }}" class="block px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700">My Profile</a>
                         <a href="{{ route('account.addresses.index') }}" class="block px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700">Saved Addresses</a>
                         <form method="POST" action="{{ route('customer.logout') }}" class="pt-2">

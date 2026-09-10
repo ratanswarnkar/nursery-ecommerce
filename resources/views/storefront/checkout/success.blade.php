@@ -51,7 +51,7 @@
                 <span class="w-2.5 h-2.5 rounded-full bg-stone-400"></span>
                 <span class="text-base font-bold text-stone-900 capitalize">{{ $order->payment_status->value }}</span>
             </div>
-            <p class="text-xs text-stone-500">Payment status is separate from order placement (gateway in Phase 6.2).</p>
+            <p class="text-xs text-stone-500">Payment verification and status updates are tracked in your customer account.</p>
         </div>
     </div>
 
