@@ -11,6 +11,7 @@ enum PaymentStatus: string
     case CANCELLED = 'cancelled';
     case EXPIRED = 'expired';
     case REFUNDED = 'refunded';
+    case PARTIALLY_REFUNDED = 'partially_refunded';
 
     /**
      * Check if a transition from the current status to the target status is valid.
@@ -38,6 +39,11 @@ enum PaymentStatus: string
             ], true),
 
             self::PAID => in_array($target, [
+                self::PARTIALLY_REFUNDED,
+                self::REFUNDED,
+            ], true),
+
+            self::PARTIALLY_REFUNDED => in_array($target, [
                 self::REFUNDED,
             ], true),
 

@@ -3,9 +3,12 @@
 namespace App\Services\Payment\Gateways;
 
 use App\Enums\PaymentStatus;
+use App\Enums\RefundStatus;
 use App\Services\Payment\Contracts\PaymentGatewayInterface;
 use App\Services\Payment\DTO\PaymentInitiationRequest;
 use App\Services\Payment\DTO\PaymentInitiationResponse;
+use App\Services\Payment\DTO\PaymentRefundRequest;
+use App\Services\Payment\DTO\PaymentRefundResponse;
 use App\Services\Payment\DTO\PaymentStatusResponse;
 use App\Services\Payment\DTO\PaymentVerificationRequest;
 use App\Services\Payment\DTO\PaymentVerificationResponse;
@@ -94,6 +97,47 @@ class NullPaymentGateway implements PaymentGatewayInterface
             gatewayTransactionId: 'NULL-STATUS-'.strtoupper(Str::random(10)),
             amount: null,
             rawPayload: ['gateway' => 'null', 'transaction_number' => $transactionNumber]
+        );
+    }
+
+    /**
+     * Process a simulated refund.
+     */
+    public function refundPayment(PaymentRefundRequest $request): PaymentRefundResponse
+    {
+        $metadata = $request->metadata;
+        $simulatedStatus = $metadata['simulated_status'] ?? 'processed';
+
+        if ($simulatedStatus === 'failed') {
+            return new PaymentRefundResponse(
+                success: false,
+                status: RefundStatus::FAILED,
+                gatewayRefundId: null,
+                amount: $request->amount,
+                currency: $request->currency,
+                failureCode: $metadata['failure_code'] ?? 'SIMULATED_REFUND_FAILURE',
+                failureMessage: $metadata['failure_message'] ?? 'Simulated refund failure via NullPaymentGateway.',
+                rawPayload: ['gateway' => 'null', 'status' => 'failed']
+            );
+        }
+
+        $refundId = 'NULL-RFND-'.strtoupper(Str::random(12));
+
+        return new PaymentRefundResponse(
+            success: true,
+            status: RefundStatus::PROCESSED,
+            gatewayRefundId: $refundId,
+            amount: $request->amount,
+            currency: $request->currency,
+            failureCode: null,
+            failureMessage: null,
+            rawPayload: [
+                'gateway' => 'null',
+                'gateway_refund_id' => $refundId,
+                'gateway_payment_id' => $request->gatewayPaymentId,
+                'amount' => $request->amount,
+                'status' => 'processed',
+            ]
         );
     }
 

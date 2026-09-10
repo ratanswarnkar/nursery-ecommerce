@@ -3,11 +3,14 @@
 namespace App\Services\Payment\Gateways;
 
 use App\Enums\PaymentStatus;
+use App\Enums\RefundStatus;
 use App\Exceptions\Payment\PaymentGatewayException;
 use App\Models\PaymentTransaction;
 use App\Services\Payment\Contracts\PaymentGatewayInterface;
 use App\Services\Payment\DTO\PaymentInitiationRequest;
 use App\Services\Payment\DTO\PaymentInitiationResponse;
+use App\Services\Payment\DTO\PaymentRefundRequest;
+use App\Services\Payment\DTO\PaymentRefundResponse;
 use App\Services\Payment\DTO\PaymentStatusResponse;
 use App\Services\Payment\DTO\PaymentVerificationRequest;
 use App\Services\Payment\DTO\PaymentVerificationResponse;
@@ -252,6 +255,93 @@ class RazorpayPaymentGateway implements PaymentGatewayInterface
             amount: (string) $transaction->amount,
             rawPayload: ['gateway' => 'razorpay', 'status' => $transaction->status->value]
         );
+    }
+
+    /**
+     * Process a refund via Razorpay Refunds API.
+     *
+     * @throws PaymentGatewayException
+     */
+    public function refundPayment(PaymentRefundRequest $request): PaymentRefundResponse
+    {
+        $amountFloat = (float) $request->amount;
+        if ($amountFloat <= 0) {
+            throw new PaymentGatewayException(
+                message: 'Refund amount must be positive.',
+                gateway: 'razorpay'
+            );
+        }
+
+        $paymentId = $request->gatewayPaymentId;
+        if (empty($paymentId) || ! str_starts_with($paymentId, 'pay_')) {
+            throw new PaymentGatewayException(
+                message: "Invalid or missing Razorpay payment ID [{$paymentId}] for refund.",
+                gateway: 'razorpay'
+            );
+        }
+
+        $amountInPaise = (int) round($amountFloat * 100);
+
+        try {
+            $api = $this->getApi();
+
+            $refundPayload = [
+                'amount' => $amountInPaise,
+                'notes' => [
+                    'order_number' => $request->order->order_number,
+                    'reason' => $request->reason ?: 'Customer requested refund',
+                ],
+            ];
+
+            // Use the authoritative payment resource to issue the refund
+            $paymentResource = $api->payment->fetch($paymentId);
+            $refundEntity = $paymentResource->refund($refundPayload);
+
+            $refundId = is_array($refundEntity)
+                ? (string) ($refundEntity['id'] ?? '')
+                : (string) ($refundEntity->id ?? '');
+
+            if (empty($refundId)) {
+                throw new PaymentGatewayException(
+                    message: 'Razorpay API did not return a valid refund ID.',
+                    gateway: 'razorpay'
+                );
+            }
+
+            return new PaymentRefundResponse(
+                success: true,
+                status: RefundStatus::PROCESSED,
+                gatewayRefundId: $refundId,
+                amount: $request->amount,
+                currency: $request->currency,
+                failureCode: null,
+                failureMessage: null,
+                rawPayload: [
+                    'gateway' => 'razorpay',
+                    'gateway_refund_id' => $refundId,
+                    'gateway_payment_id' => $paymentId,
+                    'amount_in_paise' => $amountInPaise,
+                    'status' => 'processed',
+                    'processed_at' => now()->toIso8601String(),
+                ]
+            );
+        } catch (PaymentGatewayException $e) {
+            throw $e;
+        } catch (Throwable $e) {
+            return new PaymentRefundResponse(
+                success: false,
+                status: RefundStatus::FAILED,
+                gatewayRefundId: null,
+                amount: $request->amount,
+                currency: $request->currency,
+                failureCode: 'RAZORPAY_REFUND_ERROR',
+                failureMessage: 'Razorpay refund failed: '.$e->getMessage(),
+                rawPayload: [
+                    'gateway' => 'razorpay',
+                    'error' => $e->getMessage(),
+                ]
+            );
+        }
     }
 
     /**

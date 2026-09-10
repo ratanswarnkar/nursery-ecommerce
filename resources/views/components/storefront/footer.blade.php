@@ -25,7 +25,7 @@
                     </div>
                     <div>
                         <h4 class="text-sm font-bold text-white">Free Nursery Delivery</h4>
-                        <p class="text-xs text-slate-400 mt-1">Complimentary standard shipping on all botanical orders above ₹999.</p>
+                        <p class="text-xs text-slate-400 mt-1">Complimentary delivery on all botanical orders above ₹1,000 within Delhi NCR.</p>
                     </div>
                 </div>
 
@@ -98,20 +98,20 @@
                 <ul class="space-y-2 text-xs text-slate-400">
                     <li><a href="{{ route('cart.index') }}" class="hover:text-emerald-400 transition">View Shopping Cart</a></li>
                     <li><a href="{{ route('customer.login') }}" class="hover:text-emerald-400 transition">Customer Login / OTP</a></li>
-                    <li><a href="{{ route('customer.home') }}" class="hover:text-emerald-400 transition">Customer Account</a></li>
+                    <li><a href="{{ route('account.orders.index') }}" class="hover:text-emerald-400 transition">My Orders</a></li>
                     <li><a href="{{ route('account.addresses.index') }}" class="hover:text-emerald-400 transition">Saved Delivery Addresses</a></li>
-                    <li><a href="{{ route('shop.index') }}" class="hover:text-emerald-400 transition">Shipping & Delivery Info</a></li>
+                    <li><a href="{{ route('policy.contact') }}" class="hover:text-emerald-400 transition">Contact Us</a></li>
                 </ul>
             </div>
 
-            <!-- Col 4: Quick Links -->
+            <!-- Col 4: Quick Links & Policies -->
             <div>
-                <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-3">Plant Care & Store</h4>
+                <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-3">Policies & Legal</h4>
                 <ul class="space-y-2 text-xs text-slate-400">
-                    <li><a href="{{ route('shop.index') }}" class="hover:text-emerald-400 transition">Watering Guide</a></li>
-                    <li><a href="{{ route('shop.index') }}" class="hover:text-emerald-400 transition">Sunlight Requirements</a></li>
-                    <li><a href="{{ route('shop.index') }}" class="hover:text-emerald-400 transition">Repotting Instructions</a></li>
-                    <li><a href="{{ route('shop.index') }}" class="hover:text-emerald-400 transition">Seasonal Fertilizing</a></li>
+                    <li><a href="{{ route('policy.shipping') }}" class="hover:text-emerald-400 transition">Shipping & Delivery</a></li>
+                    <li><a href="{{ route('policy.refund') }}" class="hover:text-emerald-400 transition">Returns & Refunds</a></li>
+                    <li><a href="{{ route('policy.privacy') }}" class="hover:text-emerald-400 transition">Privacy Policy</a></li>
+                    <li><a href="{{ route('policy.terms') }}" class="hover:text-emerald-400 transition">Terms & Conditions</a></li>
                     <li><a href="{{ route('admin.login') }}" class="text-slate-600 hover:text-slate-400 transition">Admin Portal</a></li>
                 </ul>
             </div>
@@ -120,8 +120,14 @@
         <!-- Copyright bar -->
         <div class="border-t border-slate-800 mt-10 pt-6 flex flex-col sm:flex-row justify-between items-center text-xs text-slate-500 gap-4">
             <p>&copy; {{ date('Y') }} Sugandha Farms and Nursery. All rights reserved.</p>
-            <div class="flex items-center gap-6">
-                <span>Certified Indian Nursery &bull; FSSAI / Agricultural Standards Compliant</span>
+            <div class="flex items-center gap-4 sm:gap-6 flex-wrap">
+                <a href="{{ route('policy.shipping') }}" class="hover:text-emerald-400 transition">Shipping Policy</a>
+                <span>&bull;</span>
+                <a href="{{ route('policy.refund') }}" class="hover:text-emerald-400 transition">Return & Refund Policy</a>
+                <span>&bull;</span>
+                <a href="{{ route('policy.privacy') }}" class="hover:text-emerald-400 transition">Privacy</a>
+                <span>&bull;</span>
+                <a href="{{ route('policy.terms') }}" class="hover:text-emerald-400 transition">Terms</a>
             </div>
         </div>
     </div>

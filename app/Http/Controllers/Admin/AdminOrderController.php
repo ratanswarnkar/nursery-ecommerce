@@ -66,11 +66,29 @@ class AdminOrderController extends Controller
      */
     public function show(Order $order): View
     {
-        $order->load(['customer', 'items.productVariant.product', 'statusHistories', 'paymentTransactions', 'cancellation', 'shipments']);
+        $order->load([
+            'customer',
+            'items.productVariant.product',
+            'statusHistories',
+            'paymentTransactions',
+            'cancellation',
+            'shipments',
+            'returns.orderItem',
+            'returns.refunds',
+            'refunds.createdByAdmin',
+        ]);
+
+        $latestPaidTx = $order->paymentTransactions
+            ->whereIn('status', [PaymentStatus::PAID, PaymentStatus::PARTIALLY_REFUNDED])
+            ->last();
+
+        $remainingRefundable = $latestPaidTx ? $latestPaidTx->remainingRefundableAmount() : 0.00;
 
         return view('admin.orders.show', [
             'order' => $order,
             'availableTransitions' => $order->status->availableTransitions(),
+            'remainingRefundable' => $remainingRefundable,
+            'latestPaidTransaction' => $latestPaidTx,
         ]);
     }
 

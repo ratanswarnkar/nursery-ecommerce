@@ -4,18 +4,23 @@ namespace App\Services\Payment;
 
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
+use App\Enums\RefundStatus;
 use App\Exceptions\Payment\DuplicatePaymentException;
 use App\Exceptions\Payment\InvalidPaymentTransitionException;
 use App\Exceptions\Payment\PaymentAmountMismatchException;
 use App\Exceptions\Payment\PaymentGatewayException;
+use App\Models\Admin;
 use App\Models\Customer;
 use App\Models\Order;
+use App\Models\OrderRefund;
+use App\Models\OrderReturn;
 use App\Models\OrderStatusHistory;
 use App\Models\PaymentTransaction;
 use App\Services\Audit\AuditLogger;
 use App\Services\Payment\Contracts\PaymentGatewayInterface;
 use App\Services\Payment\DTO\PaymentInitiationRequest;
 use App\Services\Payment\DTO\PaymentInitiationResponse;
+use App\Services\Payment\DTO\PaymentRefundRequest;
 use App\Services\Payment\DTO\PaymentVerificationRequest;
 use App\Services\Payment\DTO\PaymentVerificationResponse;
 use DomainException;
@@ -461,6 +466,161 @@ class PaymentService
             ], $lockedTxn);
 
             return $lockedTxn;
+        });
+    }
+
+    /**
+     * Process a full or partial payment refund with pessimistic locking,
+     * remaining refundable balance validation, and idempotency protection.
+     *
+     * @throws DomainException
+     * @throws PaymentGatewayException
+     */
+    public function processRefund(
+        PaymentTransaction|string $transaction,
+        float|string $amount,
+        string $reason,
+        ?OrderReturn $orderReturn = null,
+        ?Admin $admin = null,
+        ?string $idempotencyKey = null
+    ): OrderRefund {
+        return DB::transaction(function () use ($transaction, $amount, $reason, $orderReturn, $admin, $idempotencyKey) {
+            $transactionNumber = $transaction instanceof PaymentTransaction
+                ? $transaction->transaction_number
+                : $transaction;
+
+            /** @var PaymentTransaction $lockedTxn */
+            $lockedTxn = PaymentTransaction::where('transaction_number', $transactionNumber)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            /** @var Order $lockedOrder */
+            $lockedOrder = Order::where('id', $lockedTxn->order_id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            // 1. Idempotency Check: if idempotency key exists, return the existing refund
+            if ($idempotencyKey !== null) {
+                $existingRefund = OrderRefund::where('idempotency_key', $idempotencyKey)->first();
+                if ($existingRefund) {
+                    return $existingRefund;
+                }
+            }
+
+            // 2. Validate payment state: Only PAID or PARTIALLY_REFUNDED transactions can be refunded
+            if (! in_array($lockedTxn->status, [PaymentStatus::PAID, PaymentStatus::PARTIALLY_REFUNDED], true)) {
+                throw new DomainException("Transaction [{$lockedTxn->transaction_number}] cannot be refunded. Current payment status is [{$lockedTxn->status->value}].");
+            }
+
+            // 3. Calculate processed refunds & remaining refundable balance
+            $processedRefunds = (float) $lockedTxn->refunds()->where('status', RefundStatus::PROCESSED)->sum('amount');
+            $paidAmount = (float) $lockedTxn->amount;
+            $remainingRefundable = round($paidAmount - $processedRefunds, 2);
+
+            $refundAmount = round((float) $amount, 2);
+
+            if ($refundAmount <= 0) {
+                throw new DomainException('Refund amount must be greater than zero.');
+            }
+
+            if ($refundAmount > $remainingRefundable) {
+                throw new DomainException("Refund amount [₹{$refundAmount}] exceeds remaining refundable balance [₹{$remainingRefundable}].");
+            }
+
+            // 4. Resolve gateway and call refund contract
+            /** @var PaymentGatewayInterface $gateway */
+            $gateway = $this->gatewayManager->gateway($lockedTxn->gateway);
+
+            $refundRequest = new PaymentRefundRequest(
+                order: $lockedOrder,
+                transaction: $lockedTxn,
+                gatewayPaymentId: (string) $lockedTxn->gateway_transaction_id,
+                amount: number_format($refundAmount, 2, '.', ''),
+                currency: $lockedTxn->currency ?: 'INR',
+                reason: $reason,
+                metadata: [
+                    'order_return_id' => $orderReturn?->id,
+                    'admin_id' => $admin?->id,
+                ]
+            );
+
+            $response = $gateway->refundPayment($refundRequest);
+
+            if (! $response->success) {
+                // Record failed refund record for audit
+                $failedRefund = OrderRefund::create([
+                    'order_id' => $lockedOrder->id,
+                    'order_return_id' => $orderReturn?->id,
+                    'payment_transaction_id' => $lockedTxn->id,
+                    'amount' => $refundAmount,
+                    'reason' => $reason,
+                    'status' => RefundStatus::FAILED,
+                    'refund_reference' => null,
+                    'idempotency_key' => $idempotencyKey,
+                    'gateway' => $lockedTxn->gateway,
+                    'gateway_refund_id' => null,
+                    'payload' => $this->auditLogger->scrubSensitiveData($response->rawPayload),
+                    'created_by_admin_id' => $admin?->id,
+                ]);
+
+                $this->auditLogger->logAdminEvent('payment.refund_failed', $admin, [
+                    'transaction_number' => $lockedTxn->transaction_number,
+                    'order_number' => $lockedOrder->order_number,
+                    'amount' => $refundAmount,
+                    'failure_code' => $response->failureCode,
+                    'failure_message' => $response->failureMessage,
+                ], $failedRefund);
+
+                return $failedRefund;
+            }
+
+            // 5. Successful refund: Record OrderRefund
+            $orderRefund = OrderRefund::create([
+                'order_id' => $lockedOrder->id,
+                'order_return_id' => $orderReturn?->id,
+                'payment_transaction_id' => $lockedTxn->id,
+                'amount' => $refundAmount,
+                'reason' => $reason,
+                'status' => RefundStatus::PROCESSED,
+                'refund_reference' => $response->gatewayRefundId,
+                'idempotency_key' => $idempotencyKey,
+                'gateway' => $lockedTxn->gateway,
+                'gateway_refund_id' => $response->gatewayRefundId,
+                'payload' => $this->auditLogger->scrubSensitiveData($response->rawPayload),
+                'created_by_admin_id' => $admin?->id,
+                'processed_at' => now(),
+            ]);
+
+            // 6. Transition payment status
+            $newTotalRefunded = round($processedRefunds + $refundAmount, 2);
+            $targetPaymentStatus = ($newTotalRefunded >= $paidAmount)
+                ? PaymentStatus::REFUNDED
+                : PaymentStatus::PARTIALLY_REFUNDED;
+
+            $lockedTxn->update(['status' => $targetPaymentStatus]);
+            $lockedOrder->update(['payment_status' => $targetPaymentStatus]);
+
+            // 7. Audit and status history
+            OrderStatusHistory::create([
+                'order_id' => $lockedOrder->id,
+                'from_status' => $lockedOrder->status,
+                'to_status' => $lockedOrder->status,
+                'comment' => 'Refund of ₹'.number_format($refundAmount, 2)." processed successfully via [{$lockedTxn->gateway}] (Ref: {$response->gatewayRefundId}).",
+                'changed_by_type' => $admin ? Admin::class : null,
+                'changed_by_id' => $admin?->id,
+            ]);
+
+            $this->auditLogger->logAdminEvent('payment.refunded', $admin, [
+                'transaction_number' => $lockedTxn->transaction_number,
+                'order_number' => $lockedOrder->order_number,
+                'amount' => $refundAmount,
+                'total_refunded' => $newTotalRefunded,
+                'gateway' => $lockedTxn->gateway,
+                'gateway_refund_id' => $response->gatewayRefundId,
+                'target_payment_status' => $targetPaymentStatus->value,
+            ], $orderRefund);
+
+            return $orderRefund;
         });
     }
 }

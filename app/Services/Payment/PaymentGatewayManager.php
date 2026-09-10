@@ -79,6 +79,8 @@ class PaymentGatewayManager
      */
     public function getDefaultDriver(): string
     {
-        return (string) config('payment.default', 'null');
+        $driver = config('payment.default');
+
+        return ! empty($driver) ? (string) $driver : 'null';
     }
 }

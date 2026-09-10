@@ -4,6 +4,8 @@ namespace App\Services\Payment\Contracts;
 
 use App\Services\Payment\DTO\PaymentInitiationRequest;
 use App\Services\Payment\DTO\PaymentInitiationResponse;
+use App\Services\Payment\DTO\PaymentRefundRequest;
+use App\Services\Payment\DTO\PaymentRefundResponse;
 use App\Services\Payment\DTO\PaymentStatusResponse;
 use App\Services\Payment\DTO\PaymentVerificationRequest;
 use App\Services\Payment\DTO\PaymentVerificationResponse;
@@ -24,6 +26,11 @@ interface PaymentGatewayInterface
      * Query the payment status directly from the gateway.
      */
     public function getPaymentStatus(string $transactionNumber): PaymentStatusResponse;
+
+    /**
+     * Process a refund for a paid transaction via the gateway.
+     */
+    public function refundPayment(PaymentRefundRequest $request): PaymentRefundResponse;
 
     /**
      * Gateway identifier (e.g. 'null').

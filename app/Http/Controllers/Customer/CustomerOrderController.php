@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Customer;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Services\Invoice\InvoiceService;
+use App\Services\Order\OrderReturnService;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -31,20 +32,23 @@ class CustomerOrderController extends Controller
     /**
      * Display detailed order view with IDOR protection.
      */
-    public function show(string $orderNumber): View
+    public function show(string $orderNumber, OrderReturnService $orderReturnService): View
     {
         $customer = Auth::guard('customer')->user();
 
-        $order = Order::with(['items.productVariant.product', 'statusHistories', 'shipments'])
+        $order = Order::with(['items.productVariant.product', 'statusHistories', 'shipments', 'returns.orderItem', 'refunds'])
             ->where('order_number', $orderNumber)
             ->firstOrFail();
 
         // Enforce strict IDOR protection
         abort_unless($order->customer_id === $customer->id, 404);
 
+        $canReturn = $orderReturnService->canRequestReturn($order);
+
         return view('customer.account.orders.show', [
             'customer' => $customer,
             'order' => $order,
+            'canReturn' => $canReturn,
         ]);
     }
 

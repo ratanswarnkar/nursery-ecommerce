@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminOrderController;
+use App\Http\Controllers\Admin\AdminOrderReturnController;
 use App\Http\Controllers\Admin\AttributeController;
 use App\Http\Controllers\Admin\AttributeValueController;
 use App\Http\Controllers\Admin\BrandController;
@@ -19,11 +20,13 @@ use App\Http\Controllers\Cart\CartController;
 use App\Http\Controllers\Customer\AccountDashboardController;
 use App\Http\Controllers\Customer\AddressController;
 use App\Http\Controllers\Customer\CustomerOrderController;
+use App\Http\Controllers\Customer\CustomerReturnController;
 use App\Http\Controllers\Customer\ProfileController;
 use App\Http\Controllers\Storefront\BrandPageController;
 use App\Http\Controllers\Storefront\CategoryPageController;
 use App\Http\Controllers\Storefront\CheckoutController;
 use App\Http\Controllers\Storefront\HomeController;
+use App\Http\Controllers\Storefront\PolicyController;
 use App\Http\Controllers\Storefront\ProductDetailController;
 use App\Http\Controllers\Storefront\ShopController;
 use Illuminate\Support\Facades\Route;
@@ -38,6 +41,13 @@ Route::get('/shop', [ShopController::class, 'index'])->name('shop.index');
 Route::get('/categories/{category:slug}', [CategoryPageController::class, 'show'])->name('categories.show');
 Route::get('/brands/{brand:slug}', [BrandPageController::class, 'show'])->name('brands.show');
 Route::get('/products/{product:slug}', [ProductDetailController::class, 'show'])->name('products.show');
+
+// Public Policy & Legal Routes
+Route::get('/privacy-policy', [PolicyController::class, 'privacy'])->name('policy.privacy');
+Route::get('/terms-and-conditions', [PolicyController::class, 'terms'])->name('policy.terms');
+Route::get('/shipping-policy', [PolicyController::class, 'shipping'])->name('policy.shipping');
+Route::get('/cancellation-and-refund-policy', [PolicyController::class, 'refund'])->name('policy.refund');
+Route::get('/contact-us', [PolicyController::class, 'contact'])->name('policy.contact');
 
 /*
 |--------------------------------------------------------------------------
@@ -89,6 +99,8 @@ Route::middleware('web')->group(function () {
         Route::get('/account/orders', [CustomerOrderController::class, 'index'])->name('account.orders.index');
         Route::get('/account/orders/{order_number}', [CustomerOrderController::class, 'show'])->name('account.orders.show');
         Route::get('/account/orders/{order_number}/invoice', [CustomerOrderController::class, 'invoice'])->name('account.orders.invoice');
+        Route::get('/account/orders/{order_number}/return', [CustomerReturnController::class, 'create'])->name('account.orders.return');
+        Route::post('/account/orders/{order_number}/return', [CustomerReturnController::class, 'store'])->name('account.orders.return.store');
     });
 });
 
@@ -223,6 +235,13 @@ Route::middleware('web')->prefix('admin')->name('admin.')->group(function () {
         Route::put('/orders/{order}/shipments/{shipment}', [AdminOrderController::class, 'updateShipment'])->middleware('permission:orders.update,admin')->name('orders.shipments.update');
         Route::post('/orders/{order}/shipments/{shipment}/out-for-delivery', [AdminOrderController::class, 'markOutForDelivery'])->middleware('permission:orders.update,admin')->name('orders.shipments.out-for-delivery');
         Route::post('/orders/{order}/shipments/{shipment}/delivered', [AdminOrderController::class, 'markDelivered'])->middleware('permission:orders.update,admin')->name('orders.shipments.delivered');
+
+        // Order Returns & Refunds (RBAC Protected)
+        Route::post('/orders/{order}/returns/{orderReturn}/approve', [AdminOrderReturnController::class, 'approve'])->middleware('permission:orders.update,admin')->name('orders.returns.approve');
+        Route::post('/orders/{order}/returns/{orderReturn}/reject', [AdminOrderReturnController::class, 'reject'])->middleware('permission:orders.update,admin')->name('orders.returns.reject');
+        Route::post('/orders/{order}/returns/{orderReturn}/complete', [AdminOrderReturnController::class, 'complete'])->middleware('permission:orders.update,admin')->name('orders.returns.complete');
+        Route::post('/orders/{order}/returns/{orderReturn}/restock', [AdminOrderReturnController::class, 'restock'])->middleware('permission:orders.update,admin')->name('orders.returns.restock');
+        Route::post('/orders/{order}/refunds', [AdminOrderReturnController::class, 'processRefund'])->middleware('permission:orders.update,admin')->name('orders.refunds.process');
 
         // Granular RBAC Demonstration Routes
         Route::get('/test/orders-view', function () {

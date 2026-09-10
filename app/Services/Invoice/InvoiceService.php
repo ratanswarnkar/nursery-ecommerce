@@ -55,7 +55,11 @@ class InvoiceService
             return false;
         }
 
-        return $order->payment_status === PaymentStatus::PAID;
+        return in_array($order->payment_status, [
+            PaymentStatus::PAID,
+            PaymentStatus::PARTIALLY_REFUNDED,
+            PaymentStatus::REFUNDED,
+        ], true);
     }
 
     /**

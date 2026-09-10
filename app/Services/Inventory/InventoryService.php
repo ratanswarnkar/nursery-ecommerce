@@ -6,6 +6,7 @@ use App\Enums\StockMovementType;
 use App\Models\Admin;
 use App\Models\Inventory;
 use App\Models\Order;
+use App\Models\OrderReturn;
 use App\Models\ProductVariant;
 use App\Models\StockMovement;
 use App\Models\Warehouse;
@@ -355,5 +356,95 @@ class InventoryService
             ],
             $order
         );
+    }
+
+    /**
+     * Safely restock physical inventory for an approved/completed return.
+     * Guaranteed idempotent: Checks for existing StockMovement referencing this OrderReturn.
+     */
+    public function restockReturnedItems(OrderReturn $orderReturn, ?Admin $admin = null, ?int $warehouseId = null): void
+    {
+        DB::transaction(function () use ($orderReturn, $admin, $warehouseId) {
+            // 1. Idempotency Guard: Ensure this return has not already generated a restock movement
+            $alreadyRestocked = StockMovement::where('type', StockMovementType::INBOUND)
+                ->where('reference_type', OrderReturn::class)
+                ->where('reference_id', $orderReturn->id)
+                ->exists();
+
+            if ($alreadyRestocked) {
+                return;
+            }
+
+            $orderItem = $orderReturn->orderItem;
+            if (! $orderItem || ! $orderItem->product_variant_id) {
+                return;
+            }
+
+            $variantId = $orderItem->product_variant_id;
+            $quantity = $orderReturn->quantity;
+
+            if ($quantity <= 0) {
+                return;
+            }
+
+            // Resolve target warehouse (specified, or default warehouse, or first active)
+            $targetWarehouseId = $warehouseId
+                ?: Warehouse::where('is_default', true)->where('is_active', true)->value('id')
+                ?: Warehouse::where('is_active', true)->value('id');
+
+            if (! $targetWarehouseId) {
+                return;
+            }
+
+            $inventory = Inventory::where('product_variant_id', $variantId)
+                ->where('warehouse_id', $targetWarehouseId)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $inventory) {
+                $inventory = Inventory::create([
+                    'product_variant_id' => $variantId,
+                    'warehouse_id' => $targetWarehouseId,
+                    'quantity' => 0,
+                    'reserved_quantity' => 0,
+                    'safety_stock' => 0,
+                ]);
+
+                $inventory = Inventory::where('id', $inventory->id)->lockForUpdate()->first();
+            }
+
+            $previousQuantity = $inventory->quantity;
+            $newQuantity = $previousQuantity + $quantity;
+
+            $inventory->update(['quantity' => $newQuantity]);
+
+            StockMovement::create([
+                'product_variant_id' => $variantId,
+                'warehouse_id' => $targetWarehouseId,
+                'type' => StockMovementType::INBOUND,
+                'quantity' => $quantity,
+                'previous_quantity' => $previousQuantity,
+                'new_quantity' => $newQuantity,
+                'reference_type' => OrderReturn::class,
+                'reference_id' => $orderReturn->id,
+                'notes' => "Restocked from OrderReturn #{$orderReturn->id} (Order #{$orderReturn->order?->order_number})",
+                'created_by' => $admin?->id,
+            ]);
+
+            $this->auditLogger->logAdminEvent(
+                'inventory.stock_restocked',
+                $admin,
+                [
+                    'return_id' => $orderReturn->id,
+                    'order_number' => $orderReturn->order?->order_number,
+                    'variant_id' => $variantId,
+                    'warehouse_id' => $targetWarehouseId,
+                    'quantity' => $quantity,
+                    'previous_quantity' => $previousQuantity,
+                    'new_quantity' => $newQuantity,
+                ],
+                $orderReturn
+            );
+        });
     }
 }

@@ -15,7 +15,7 @@ return [
     |
     */
 
-    'default' => env('PAYMENT_GATEWAY', 'null'),
+    'default' => env('PAYMENT_GATEWAY') ?: 'null',
 
     /*
     |--------------------------------------------------------------------------

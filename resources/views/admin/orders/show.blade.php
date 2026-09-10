@@ -184,6 +184,264 @@
             @endif
         </div>
 
+        <!-- Returns & Refunds Management Card -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.5rem;">
+                <h2 style="font-size: 1rem; font-weight: 700; color: #111827; margin: 0;">
+                    Returns & Refunds Management
+                </h2>
+                <div style="font-size: 0.8125rem;">
+                    <span style="color: #6b7280;">Remaining Refundable:</span>
+                    <strong style="color: #065f46; font-size: 0.9375rem;">₹{{ number_format((float) ($remainingRefundable ?? 0), 2) }}</strong>
+                </div>
+            </div>
+
+            <!-- 1. Customer Return Requests -->
+            <div style="margin-bottom: 1.5rem;">
+                <h3 style="font-size: 0.8125rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #4b5563; margin-bottom: 0.5rem;">
+                    Return Requests ({{ $order->returns->count() }})
+                </h3>
+
+                @if($order->returns->isEmpty())
+                    <p style="font-size: 0.8125rem; color: #6b7280; font-style: italic; background: #f9fafb; padding: 0.75rem; border-radius: 0.375rem;">
+                        No return requests recorded for this order.
+                    </p>
+                @else
+                    <div class="table-container" style="margin-bottom: 1rem;">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Return #</th>
+                                    <th>Item</th>
+                                    <th>Qty</th>
+                                    <th>Est. Refund</th>
+                                    <th>Status</th>
+                                    <th>Reason / Notes</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($order->returns as $ret)
+                                    <tr>
+                                        <td style="font-family: monospace; font-size: 0.75rem; font-weight: 600;">
+                                            #{{ $ret->id }}
+                                        </td>
+                                        <td>
+                                            <div style="font-weight: 600; font-size: 0.8125rem;">{{ $ret->orderItem?->product_name ?? 'Botanical Item' }}</div>
+                                            <div style="font-size: 0.7rem; color: #6b7280;">{{ $ret->orderItem?->variant_name }} &bull; {{ $ret->orderItem?->sku }}</div>
+                                        </td>
+                                        <td style="font-weight: 700;">{{ $ret->quantity }}</td>
+                                        <td style="font-weight: 700; color: #065f46;">₹{{ number_format((float) $ret->refund_amount, 2) }}</td>
+                                        <td>
+                                            @php
+                                                $retStyle = match($ret->status) {
+                                                    \App\Enums\ReturnStatus::REQUESTED => 'background: #fef3c7; color: #92400e;',
+                                                    \App\Enums\ReturnStatus::APPROVED => 'background: #dbeafe; color: #1e40af;',
+                                                    \App\Enums\ReturnStatus::REJECTED => 'background: #fee2e2; color: #991b1b;',
+                                                    \App\Enums\ReturnStatus::COMPLETED => 'background: #d1fae5; color: #065f46;',
+                                                    default => 'background: #f3f4f6; color: #374151;',
+                                                };
+                                            @endphp
+                                            <span class="badge" style="{{ $retStyle }} padding: 0.2rem 0.5rem; border-radius: 9999px; font-weight: 700; text-transform: uppercase; font-size: 0.65rem;">
+                                                {{ $ret->status->value }}
+                                            </span>
+                                        </td>
+                                        <td style="font-size: 0.75rem; max-width: 200px;">
+                                            <div style="color: #374151;"><em>"{{ $ret->reason }}"</em></div>
+                                            @if($ret->admin_notes)
+                                                <div style="color: #047857; font-size: 0.7rem; margin-top: 0.25rem;">
+                                                    <strong>Admin Note:</strong> {{ $ret->admin_notes }}
+                                                </div>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @can('orders.update', 'admin')
+                                                @if($ret->status === \App\Enums\ReturnStatus::REQUESTED)
+                                                    <div style="display: flex; flex-direction: column; gap: 0.35rem;">
+                                                        <!-- Approve Form -->
+                                                        <form method="POST" action="{{ route('admin.orders.returns.approve', [$order, $ret]) }}">
+                                                            @csrf
+                                                            <input type="hidden" name="admin_notes" value="Approved by admin for nursery pickup/replacement.">
+                                                            <button type="submit" class="btn" style="background: #10b981; color: #fff; padding: 0.2rem 0.5rem; font-size: 0.7rem; border-radius: 0.25rem; width: 100%;">
+                                                                ✓ Approve
+                                                            </button>
+                                                        </form>
+
+                                                        <!-- Reject Form -->
+                                                        <details style="font-size: 0.7rem;">
+                                                            <summary style="cursor: pointer; color: #dc2626; font-weight: 600;">Reject...</summary>
+                                                            <form method="POST" action="{{ route('admin.orders.returns.reject', [$order, $ret]) }}" style="margin-top: 0.3rem;">
+                                                                @csrf
+                                                                <input type="text" name="reason" placeholder="Mandatory rejection reason..." required style="width: 100%; font-size: 0.7rem; padding: 0.25rem; border: 1px solid #fca5a5; border-radius: 0.25rem; margin-bottom: 0.25rem;">
+                                                                <button type="submit" class="btn" style="background: #ef4444; color: #fff; padding: 0.2rem 0.5rem; font-size: 0.7rem; border-radius: 0.25rem; width: 100%;">
+                                                                    Confirm Reject
+                                                                </button>
+                                                            </form>
+                                                        </details>
+                                                    </div>
+                                                @elseif($ret->status === \App\Enums\ReturnStatus::APPROVED)
+                                                    <!-- Complete Form -->
+                                                    <form method="POST" action="{{ route('admin.orders.returns.complete', [$order, $ret]) }}" style="display: flex; flex-direction: column; gap: 0.35rem;">
+                                                        @csrf
+                                                        <label style="font-size: 0.65rem; color: #374151; display: flex; align-items: center; gap: 0.25rem;">
+                                                            <input type="checkbox" name="restock" value="1" checked>
+                                                            Restock Stock
+                                                        </label>
+                                                        <button type="submit" class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.7rem; border-radius: 0.25rem;">
+                                                            Mark Received
+                                                        </button>
+                                                    </form>
+                                                @elseif($ret->status === \App\Enums\ReturnStatus::COMPLETED)
+                                                    @php
+                                                        $isRestocked = \App\Models\StockMovement::where('reference_type', \App\Models\OrderReturn::class)
+                                                            ->where('reference_id', $ret->id)
+                                                            ->exists();
+                                                    @endphp
+                                                    @if($isRestocked)
+                                                        <span style="font-size: 0.7rem; color: #047857; font-weight: 600;">✓ Restocked</span>
+                                                    @else
+                                                        <form method="POST" action="{{ route('admin.orders.returns.restock', [$order, $ret]) }}">
+                                                            @csrf
+                                                            <button type="submit" class="btn" style="background: #0284c7; color: #fff; padding: 0.2rem 0.5rem; font-size: 0.7rem; border-radius: 0.25rem;">
+                                                                Restock Items
+                                                            </button>
+                                                        </form>
+                                                    @endif
+                                                @else
+                                                    <span style="font-size: 0.7rem; color: #9ca3af;">—</span>
+                                                @endif
+                                            @endcan
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            </div>
+
+            <!-- 2. Process Refund Form -->
+            @can('orders.update', 'admin')
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 1rem; margin-bottom: 1.5rem;">
+                    <h3 style="font-size: 0.8125rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #1e293b; margin-bottom: 0.75rem;">
+                        Process Refund
+                    </h3>
+
+                    @if(!empty($remainingRefundable) && $remainingRefundable > 0 && !empty($latestPaidTransaction))
+                        <form method="POST" action="{{ route('admin.orders.refunds.process', $order) }}">
+                            @csrf
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+                                <div>
+                                    <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">
+                                        Refund Amount (₹): <span style="color: #059669; font-weight: 700;">Max: ₹{{ number_format((float) $remainingRefundable, 2) }}</span>
+                                    </label>
+                                    <input type="number" step="0.01" min="0.01" max="{{ $remainingRefundable }}" name="amount" value="{{ old('amount', $remainingRefundable) }}" required style="width: 100%; padding: 0.4rem 0.5rem; border: 1px solid #cbd5e1; border-radius: 0.375rem; font-size: 0.8125rem;">
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">
+                                        Link to Approved Return (optional):
+                                    </label>
+                                    <select name="order_return_id" style="width: 100%; padding: 0.4rem 0.5rem; border: 1px solid #cbd5e1; border-radius: 0.375rem; font-size: 0.8125rem;">
+                                        <option value="">-- None (General Order Refund) --</option>
+                                        @foreach($order->returns as $ret)
+                                            <option value="{{ $ret->id }}">
+                                                Return #{{ $ret->id }} - {{ $ret->orderItem?->product_name }} (Qty: {{ $ret->quantity }}, ₹{{ number_format((float) $ret->refund_amount, 2) }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom: 0.75rem;">
+                                <label style="display: block; font-size: 0.75rem; font-weight: 600; color: #374151; margin-bottom: 0.25rem;">
+                                    Refund Reason <span style="color: #dc2626;">*</span>:
+                                </label>
+                                <input type="text" name="reason" placeholder="e.g. Customer returned damaged sapling; transit foliage loss" value="{{ old('reason') }}" required style="width: 100%; padding: 0.4rem 0.5rem; border: 1px solid #cbd5e1; border-radius: 0.375rem; font-size: 0.8125rem;">
+                            </div>
+
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 0.75rem;">
+                                <span style="font-size: 0.75rem; color: #64748b;">
+                                    Payment Gateway: <strong style="color: #0f172a; text-transform: uppercase;">{{ $latestPaidTransaction->gateway }}</strong>
+                                </span>
+                                <button type="submit" class="btn btn-primary" style="font-size: 0.8125rem; padding: 0.45rem 1rem;">
+                                    Execute Refund Server-Side
+                                </button>
+                            </div>
+                        </form>
+                    @else
+                        <p style="font-size: 0.8125rem; color: #64748b; font-style: italic; margin: 0;">
+                            This order has no remaining refundable balance or has not been paid.
+                        </p>
+                    @endif
+                </div>
+            @endcan
+
+            <!-- 3. Processed Refunds Ledger -->
+            <div>
+                <h3 style="font-size: 0.8125rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #4b5563; margin-bottom: 0.5rem;">
+                    Refund History ({{ $order->refunds->count() }})
+                </h3>
+
+                @if($order->refunds->isEmpty())
+                    <p style="font-size: 0.8125rem; color: #6b7280; font-style: italic; background: #f9fafb; padding: 0.75rem; border-radius: 0.375rem; margin: 0;">
+                        No refunds processed for this order yet.
+                    </p>
+                @else
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Refund ID</th>
+                                    <th>Gateway Refund Ref</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Gateway</th>
+                                    <th>Processed By</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($order->refunds as $ref)
+                                    <tr>
+                                        <td style="font-family: monospace; font-size: 0.75rem; font-weight: 600;">
+                                            #{{ $ref->id }}
+                                        </td>
+                                        <td style="font-family: monospace; font-size: 0.75rem; color: #1e293b; font-weight: 600;">
+                                            {{ $ref->gateway_refund_id ?: '—' }}
+                                        </td>
+                                        <td style="font-weight: 700; color: #065f46;">
+                                            ₹{{ number_format((float) $ref->amount, 2) }}
+                                        </td>
+                                        <td>
+                                            @php
+                                                $rfndStyle = match($ref->status) {
+                                                    \App\Enums\RefundStatus::PROCESSED => 'background: #d1fae5; color: #065f46;',
+                                                    \App\Enums\RefundStatus::FAILED => 'background: #fee2e2; color: #991b1b;',
+                                                    default => 'background: #fef3c7; color: #92400e;',
+                                                };
+                                            @endphp
+                                            <span class="badge" style="{{ $rfndStyle }} padding: 0.2rem 0.5rem; border-radius: 9999px; font-weight: 700; text-transform: uppercase; font-size: 0.65rem;">
+                                                {{ $ref->status->value }}
+                                            </span>
+                                        </td>
+                                        <td style="font-size: 0.75rem; text-transform: uppercase; font-weight: 600; color: #4b5563;">
+                                            {{ $ref->gateway }}
+                                        </td>
+                                        <td style="font-size: 0.75rem; color: #374151;">
+                                            {{ $ref->createdByAdmin?->name ?? 'System' }}
+                                        </td>
+                                        <td style="font-size: 0.75rem; color: #6b7280; font-family: monospace;">
+                                            {{ $ref->created_at->format('M d, Y h:i A') }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            </div>
+        </div>
+
         @if($order->notes)
             <div class="card">
                 <h3 style="font-size: 0.875rem; font-weight: 700; margin-bottom: 0.5rem;">Customer Order Notes</h3>

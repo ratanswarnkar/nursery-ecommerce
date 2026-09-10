@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\PaymentStatus;
+use App\Enums\RefundStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -65,6 +66,29 @@ class PaymentTransaction extends Model
     public function isExpired(): bool
     {
         return $this->status === PaymentStatus::EXPIRED;
+    }
+
+    public function isRefunded(): bool
+    {
+        return $this->status === PaymentStatus::REFUNDED;
+    }
+
+    public function isPartiallyRefunded(): bool
+    {
+        return $this->status === PaymentStatus::PARTIALLY_REFUNDED;
+    }
+
+    public function refundedAmount(): string
+    {
+        return number_format((float) $this->refunds()->where('status', RefundStatus::PROCESSED)->sum('amount'), 2, '.', '');
+    }
+
+    public function remainingRefundableAmount(): string
+    {
+        $paid = (float) $this->amount;
+        $refunded = (float) $this->refundedAmount();
+
+        return number_format(max(0, $paid - $refunded), 2, '.', '');
     }
 
     public function order(): BelongsTo
