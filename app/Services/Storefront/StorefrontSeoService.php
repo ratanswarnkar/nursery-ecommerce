@@ -12,10 +12,10 @@ class StorefrontSeoService
      */
     public function buildProductJsonLd(Product $product, ?ProductVariant $variant = null): array
     {
-        $variant = $variant ?: $product->defaultVariant ?: $product->variants->first();
+        $variant = ($variant && $variant->is_active) ? $variant : $product->variants->firstWhere('is_active', true);
 
         $price = $variant ? (string) $variant->price : '0.00';
-        $inStock = $variant && $variant->available_stock > 0;
+        $inStock = $variant && $variant->is_active && $variant->available_stock > 0;
 
         $images = $product->images->pluck('url')->all();
         if (empty($images) && $product->primaryImage) {

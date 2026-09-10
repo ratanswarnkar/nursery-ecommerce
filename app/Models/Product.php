@@ -100,6 +100,11 @@ class Product extends Model
         return $query->where('is_featured', true);
     }
 
+    public function getDescriptionAttribute(): ?string
+    {
+        return $this->full_description ?: $this->short_description;
+    }
+
     public function getMinPriceAttribute(): ?string
     {
         if ($this->relationLoaded('variants')) {

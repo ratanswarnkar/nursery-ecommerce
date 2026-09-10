@@ -8,6 +8,7 @@
 
 @php
     $selectedAttributes = $currentFilters['attributes'] ?? [];
+    $selectedBrands = (array) ($currentFilters['brand'] ?? []);
     $selectedMinPrice = $currentFilters['min_price'] ?? '';
     $selectedMaxPrice = $currentFilters['max_price'] ?? '';
     $inStockOnly = !empty($currentFilters['in_stock']);
@@ -16,10 +17,14 @@
     $attributes = collect($facets['attributes'] ?? []);
     $currentSort = $currentFilters['sort'] ?? 'featured';
     $searchQuery = $currentFilters['q'] ?? '';
+    $currentCategory = $currentFilters['category'] ?? '';
 @endphp
 
 <form method="GET" action="{{ $actionUrl }}" id="catalog-filter-form" class="space-y-6">
-    {{-- Preserve Sort and Search --}}
+    {{-- Preserve Category, Sort and Search --}}
+    @if($currentCategory && !$activeCategory)
+        <input type="hidden" name="category" value="{{ $currentCategory }}">
+    @endif
     @if($searchQuery)
         <input type="hidden" name="q" value="{{ $searchQuery }}">
     @endif
@@ -130,7 +135,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
             </button>
-            <div x-show="open" class="space-y-1 max-h-48 overflow-y-auto pr-1">
+            <div x-show="open" class="space-y-1.5 max-h-48 overflow-y-auto pr-1">
                 @foreach($brands as $brand)
                     @php
                         $brandSlug = data_get($brand, 'slug');
@@ -138,11 +143,20 @@
                         $brandCount = data_get($brand, 'count', data_get($brand, 'active_products_count', 0));
                     @endphp
                     @if($brandSlug)
-                        <a href="{{ route('brands.show', $brandSlug) }}"
-                           class="flex items-center justify-between text-xs py-1 px-1.5 rounded hover:bg-emerald-50 text-stone-600 hover:text-emerald-900 transition-colors">
-                            <span class="truncate">{{ $brandName }}</span>
-                            <span class="text-[10px] text-stone-400 font-mono">({{ $brandCount }})</span>
-                        </a>
+                        <label class="flex items-center justify-between gap-2 text-xs text-stone-600 hover:text-stone-900 cursor-pointer select-none">
+                            <div class="flex items-center gap-2 truncate">
+                                <input type="checkbox"
+                                       name="brand[]"
+                                       value="{{ $brandSlug }}"
+                                       {{ in_array($brandSlug, $selectedBrands, true) ? 'checked' : '' }}
+                                       onchange="this.form.submit()"
+                                       class="w-3.5 h-3.5 rounded border-stone-300 text-emerald-700 focus:ring-emerald-500">
+                                <span class="truncate">{{ $brandName }}</span>
+                            </div>
+                            @if($brandCount !== null)
+                                <span class="text-[10px] text-stone-400 font-mono">({{ $brandCount }})</span>
+                            @endif
+                        </label>
                     @endif
                 @endforeach
             </div>

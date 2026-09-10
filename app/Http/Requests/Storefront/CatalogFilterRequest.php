@@ -17,6 +17,10 @@ class CatalogFilterRequest extends FormRequest
         if ($this->has('sort') && ! in_array($this->input('sort'), $allowedSorts, true)) {
             $this->merge(['sort' => 'featured']);
         }
+
+        if ($this->has('brand') && is_string($this->input('brand'))) {
+            $this->merge(['brand' => [$this->input('brand')]]);
+        }
     }
 
     public function rules(): array

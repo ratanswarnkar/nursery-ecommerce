@@ -43,7 +43,7 @@
                 <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
                 </svg>
-                <span>Filter ({{ count($filters['attributes'] ?? []) + (!empty($filters['in_stock']) ? 1 : 0) + (!empty($filters['min_price']) || !empty($filters['max_price']) ? 1 : 0) }})</span>
+                <span>Filter ({{ count($filters['attributes'] ?? []) + count((array)($filters['brand'] ?? [])) + (!empty($filters['category']) ? 1 : 0) + (!empty($filters['in_stock']) ? 1 : 0) + (!empty($filters['min_price']) || !empty($filters['max_price']) ? 1 : 0) }})</span>
             </button>
 
             {{-- Sort By Selector --}}
@@ -117,20 +117,56 @@
         {{-- Product Grid --}}
         <main class="lg:col-span-3 space-y-8">
             @if($products->isEmpty())
-                <div class="p-12 text-center bg-white rounded-2xl border border-stone-200/80 shadow-sm space-y-4">
-                    <div class="w-16 h-16 mx-auto rounded-full bg-emerald-50 text-emerald-800 flex items-center justify-center">
-                        <svg class="w-8 h-8 stroke-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="p-8 sm:p-12 text-center bg-white rounded-3xl border border-stone-200/80 shadow-sm space-y-5">
+                    <div class="w-16 h-16 mx-auto rounded-2xl bg-emerald-50 text-emerald-800 flex items-center justify-center border border-emerald-100 shadow-inner">
+                        <svg class="w-8 h-8 stroke-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                         </svg>
                     </div>
-                    <h2 class="text-xl font-bold text-stone-900">No Botanicals Found</h2>
-                    <p class="text-sm text-stone-500 max-w-md mx-auto">
-                        We couldn't find any plants matching your selected filter criteria. Try relaxing your filters or search keywords.
-                    </p>
-                    <div class="pt-2">
+
+                    <div class="space-y-2">
+                        @if(!empty($filters['q']))
+                            <h2 class="text-xl sm:text-2xl font-bold text-stone-900">
+                                No products found matching &ldquo;{{ $filters['q'] }}&rdquo;
+                            </h2>
+                        @else
+                            <h2 class="text-xl sm:text-2xl font-bold text-stone-900">
+                                No Botanical Specimens Found
+                            </h2>
+                        @endif
+                        <p class="text-sm text-stone-600 max-w-md mx-auto">
+                            We couldn't find any botanical plants matching your active criteria.
+                        </p>
+                    </div>
+
+                    {{-- Helpful Suggestions --}}
+                    <div class="max-w-md mx-auto bg-stone-50 rounded-2xl p-4 border border-stone-200/70 text-left text-xs sm:text-sm text-stone-600 space-y-2">
+                        <span class="font-semibold text-stone-900 flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Suggestions to help find your plant:
+                        </span>
+                        <ul class="list-disc list-inside space-y-1 text-stone-500 pl-1 text-xs">
+                            <li>Check for typos or spelling errors in your search terms</li>
+                            <li>Try using broader or alternate plant names (e.g. &ldquo;Ficus&rdquo; instead of specific variety)</li>
+                            <li>Clear some active filters such as specific brand, category, or price range</li>
+                            <li>Browse our complete nursery catalog to view all available plants</li>
+                        </ul>
+                    </div>
+
+                    {{-- Action CTAs --}}
+                    <div class="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
                         <a href="{{ route('shop.index') }}"
-                           class="inline-flex items-center px-4 py-2 rounded-xl bg-emerald-800 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition-colors">
-                            Clear All Filters
+                           class="w-full sm:w-auto inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-semibold shadow-sm transition-all">
+                            <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                            Clear All Filters &amp; Search
+                        </a>
+                        <a href="{{ route('shop.index') }}"
+                           class="w-full sm:w-auto inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold transition-all">
+                            Browse All Plants
                         </a>
                     </div>
                 </div>

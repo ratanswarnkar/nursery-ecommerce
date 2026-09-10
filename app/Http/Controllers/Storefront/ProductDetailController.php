@@ -33,8 +33,6 @@ class ProductDetailController extends Controller
         // Filter variants to active, non-deleted only
         $activeVariants = $product->variants->filter(fn ($v) => $v->is_active && ! $v->trashed());
 
-        abort_if($activeVariants->isEmpty(), 404);
-
         $defaultVariant = $activeVariants->firstWhere('is_default', true) ?: $activeVariants->first();
 
         // 1. Build Server-Generated Variant Matrix (Only real active database variants)
@@ -46,6 +44,13 @@ class ProductDetailController extends Controller
 
             $variantImage = $variant->images->first()?->url ?: ($product->primaryImage?->url ?: null);
 
+            $safetyStock = (int) $variant->inventories
+                ->filter(fn ($inv) => ! $inv->warehouse || $inv->warehouse->is_active)
+                ->sum('safety_stock');
+
+            $availableStock = (int) $variant->available_stock;
+            $isLowStock = ($safetyStock > 0 && $availableStock > 0 && $availableStock <= $safetyStock);
+
             return [
                 'id' => $variant->id,
                 'sku' => $variant->sku,
@@ -55,10 +60,13 @@ class ProductDetailController extends Controller
                 'compare_at_price_formatted' => $variant->compare_at_price ? '₹'.number_format((float) $variant->compare_at_price, 2) : null,
                 'discount_percentage' => $variant->discount_percentage,
                 'discount_percent' => $variant->discount_percentage,
-                'available_stock' => $variant->available_stock,
-                'stock' => $variant->available_stock,
-                'is_in_stock' => $variant->available_stock > 0,
-                'max_quantity' => min(50, max(0, $variant->available_stock)),
+                'available_stock' => $availableStock,
+                'stock' => $availableStock,
+                'safety_stock' => $safetyStock,
+                'is_in_stock' => $availableStock > 0,
+                'is_low_stock' => $isLowStock,
+                'stock_status' => $availableStock <= 0 ? 'out_of_stock' : ($isLowStock ? 'low_stock' : 'in_stock'),
+                'max_quantity' => min(50, max(0, $availableStock)),
                 'image_url' => $variantImage,
                 'attributes' => $attributeMap,
                 'attribute_values' => $attributeMap,

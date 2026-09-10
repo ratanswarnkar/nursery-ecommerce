@@ -114,3 +114,94 @@ test('PDP renders Schema.org JSON-LD structured data', function () {
     $response->assertSee('"@type": "Offer"', false);
     $response->assertSee('"priceCurrency": "INR"', false);
 });
+
+test('active product with all inactive variants returns 200 with currently unavailable status and disables add to cart', function () {
+    $product = Product::factory()->create([
+        'name' => 'Dormant Winter Fern',
+        'is_active' => true,
+    ]);
+
+    ProductVariant::factory()->create([
+        'product_id' => $product->id,
+        'sku' => 'FERN-DORMANT-01',
+        'is_active' => false,
+    ]);
+
+    $response = $this->get(route('products.show', $product->slug));
+    $response->assertOk();
+    $response->assertSee('Dormant Winter Fern');
+    $response->assertSee('Currently Unavailable');
+    $response->assertDontSee('FERN-DORMANT-01');
+});
+
+test('inactive variant cannot be added to cart', function () {
+    $product = Product::factory()->create(['name' => 'Protected Rare Orchid', 'is_active' => true]);
+
+    $inactiveVariant = ProductVariant::factory()->create([
+        'product_id' => $product->id,
+        'is_active' => false,
+        'price' => '1499.00',
+    ]);
+
+    $response = $this->post(route('cart.items.store'), [
+        'product_variant_id' => $inactiveVariant->id,
+        'quantity' => 1,
+    ]);
+
+    $response->assertSessionHasErrors('product_variant_id');
+});
+
+test('PDP displays authentic Delhi NCR delivery information', function () {
+    $product = Product::factory()->create(['name' => 'Areca Palm Classic', 'is_active' => true]);
+    ProductVariant::factory()->create(['product_id' => $product->id, 'is_active' => true]);
+
+    $response = $this->get(route('products.show', $product->slug));
+    $response->assertOk();
+    $response->assertSee('Delhi NCR');
+    $response->assertSee('3 days');
+    $response->assertSee('1,000');
+});
+
+test('PDP variant matrix reflects low stock when stock is at or below safety stock', function () {
+    $product = Product::factory()->create(['name' => 'Rare Syngonium Albo', 'is_active' => true]);
+
+    $variant = ProductVariant::factory()->create([
+        'product_id' => $product->id,
+        'is_active' => true,
+    ]);
+
+    Inventory::create([
+        'product_variant_id' => $variant->id,
+        'warehouse_id' => $this->warehouse->id,
+        'quantity' => 2,
+        'reserved_quantity' => 0,
+        'safety_stock' => 3, // available (2) <= safety_stock (3) => low stock
+    ]);
+
+    $response = $this->get(route('products.show', $product->slug));
+    $response->assertOk();
+    $response->assertSee('Low Stock: Only 2 Left');
+});
+
+test('PDP renders botanical specifications from real custom attributes without fabricating data', function () {
+    $product = Product::factory()->create([
+        'name' => 'Bonsai Ficus Microcarpa',
+        'is_active' => true,
+        'custom_attributes' => [
+            'light_requirement' => 'bright_indirect',
+            'care_level' => 'moderate',
+            'watering' => 'twice_weekly',
+        ],
+    ]);
+
+    ProductVariant::factory()->create(['product_id' => $product->id, 'is_active' => true]);
+
+    $response = $this->get(route('products.show', $product->slug));
+    $response->assertOk();
+    $response->assertSee('Light Requirement');
+    $response->assertSee('bright indirect');
+    $response->assertSee('Care Level');
+    $response->assertSee('moderate');
+    $response->assertSee('Watering');
+    $response->assertSee('twice weekly');
+});

@@ -131,7 +131,11 @@ class StorefrontCatalogService
                 $query->where(function ($sq) use ($term) {
                     $sq->where('name', 'LIKE', '%'.$term.'%')
                         ->orWhere('base_sku', 'LIKE', '%'.$term.'%')
-                        ->orWhere('short_description', 'LIKE', '%'.$term.'%');
+                        ->orWhere('short_description', 'LIKE', '%'.$term.'%')
+                        ->orWhere('full_description', 'LIKE', '%'.$term.'%')
+                        ->orWhereHas('variants', fn ($vq) => $vq->where('sku', 'LIKE', '%'.$term.'%'))
+                        ->orWhereHas('brand', fn ($bq) => $bq->where('name', 'LIKE', '%'.$term.'%'))
+                        ->orWhereHas('categories', fn ($cq) => $cq->where('name', 'LIKE', '%'.$term.'%'));
                 });
             }
         }
@@ -188,7 +192,11 @@ class StorefrontCatalogService
                 $baseQuery->where(function ($sq) use ($term) {
                     $sq->where('name', 'LIKE', '%'.$term.'%')
                         ->orWhere('base_sku', 'LIKE', '%'.$term.'%')
-                        ->orWhere('short_description', 'LIKE', '%'.$term.'%');
+                        ->orWhere('short_description', 'LIKE', '%'.$term.'%')
+                        ->orWhere('full_description', 'LIKE', '%'.$term.'%')
+                        ->orWhereHas('variants', fn ($vq) => $vq->where('sku', 'LIKE', '%'.$term.'%'))
+                        ->orWhereHas('brand', fn ($bq) => $bq->where('name', 'LIKE', '%'.$term.'%'))
+                        ->orWhereHas('categories', fn ($cq) => $cq->where('name', 'LIKE', '%'.$term.'%'));
                 });
             }
         }
