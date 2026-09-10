@@ -5,16 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', 'Sugandha Farms and Nursery') - Wholesale Plant Nursery & Garden Essentials</title>
-    <meta name="description" content="@yield('meta_description', 'Discover fresh greenhouse-grown indoor plants, flowering saplings, fruit trees, premium terracotta planters, organic soils, and expert gardening care.')">
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
 
-    @if(!empty($canonicalUrl))
-        <link rel="canonical" href="{{ $canonicalUrl }}">
-    @else
-        <link rel="canonical" href="{{ url()->current() }}">
+    @if(!View::hasSection('seo'))
+        <title>@yield('title', 'Sugandha Farms and Nursery') - Wholesale Plant Nursery & Garden Essentials</title>
+        <meta name="description" content="@yield('meta_description', 'Discover fresh greenhouse-grown indoor plants, flowering saplings, fruit trees, premium terracotta planters, organic soils, and expert gardening care.')">
+
+        @if(!empty($canonicalUrl))
+            <link rel="canonical" href="{{ $canonicalUrl }}">
+        @else
+            <link rel="canonical" href="{{ url()->current() }}">
+        @endif
+
+        @yield('meta_robots')
     @endif
-
-    @yield('meta_robots')
 
     <!-- OpenGraph / Social Meta -->
     <meta property="og:site_name" content="Sugandha Farms and Nursery">
@@ -103,6 +107,11 @@
     @stack('head')
 </head>
 <body class="flex flex-col min-h-full antialiased bg-slate-50 text-slate-900" x-data="{ mobileMenuOpen: false, cartOpen: false }">
+    <!-- Skip to Content Link (WCAG 2.4.1) -->
+    <a href="#main-content"
+       class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2.5 focus:bg-emerald-800 focus:text-white focus:font-bold focus:text-xs focus:rounded-xl focus:shadow-2xl focus:ring-2 focus:ring-white">
+        Skip to main content
+    </a>
 
     <!-- Universal Announcement Bar -->
     <div class="bg-emerald-950 text-emerald-100 text-xs py-2 px-4 border-b border-emerald-900/60">
@@ -126,7 +135,7 @@
     @include('components.storefront.flash-toast')
 
     <!-- Main Content Slot -->
-    <main class="flex-grow">
+    <main id="main-content" tabindex="-1" class="flex-grow focus:outline-hidden">
         @yield('content')
     </main>
 

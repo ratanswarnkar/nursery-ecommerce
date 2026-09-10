@@ -29,6 +29,7 @@ use App\Http\Controllers\Storefront\HomeController;
 use App\Http\Controllers\Storefront\PolicyController;
 use App\Http\Controllers\Storefront\ProductDetailController;
 use App\Http\Controllers\Storefront\ShopController;
+use App\Http\Controllers\Storefront\SitemapController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -41,6 +42,7 @@ Route::get('/shop', [ShopController::class, 'index'])->name('shop.index');
 Route::get('/categories/{category:slug}', [CategoryPageController::class, 'show'])->name('categories.show');
 Route::get('/brands/{brand:slug}', [BrandPageController::class, 'show'])->name('brands.show');
 Route::get('/products/{product:slug}', [ProductDetailController::class, 'show'])->name('products.show');
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 
 // Public Policy & Legal Routes
 Route::get('/privacy-policy', [PolicyController::class, 'privacy'])->name('policy.privacy');

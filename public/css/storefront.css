@@ -158,3 +158,27 @@ img {
 [x-cloak] {
     display: none !important;
 }
+
+/* Touch Momentum Scrolling */
+.touch-scroll {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+}
+
+/* Focus-Visible Outline Accessibility Guard */
+:focus-visible {
+    outline: 2px solid #047857;
+    outline-offset: 2px;
+}
+
+/* Respect User Motion Preferences (WCAG 2.1 AAA - 2.3.3) */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

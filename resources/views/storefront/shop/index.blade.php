@@ -75,9 +75,11 @@
         {{-- Mobile Filter Drawer Modal --}}
         <div x-show="mobileFiltersOpen"
              x-cloak
+             @keydown.escape.window="mobileFiltersOpen = false"
              class="relative z-50 lg:hidden"
              role="dialog"
-             aria-modal="true">
+             aria-modal="true"
+             aria-label="Product filters">
             <div x-show="mobileFiltersOpen"
                  x-transition:enter="ease-out duration-300"
                  x-transition:enter-start="opacity-0"
@@ -99,7 +101,10 @@
                      class="relative mr-auto flex h-full w-full max-w-xs flex-col overflow-y-auto bg-white py-4 pb-12 shadow-xl p-6">
                     <div class="flex items-center justify-between border-b border-stone-200 pb-4 mb-4">
                         <h2 class="text-base font-bold text-stone-900">Filters</h2>
-                        <button type="button" @click="mobileFiltersOpen = false" class="text-stone-400 hover:text-stone-600 p-1">
+                        <button type="button"
+                                @click="mobileFiltersOpen = false"
+                                aria-label="Close filters"
+                                class="text-stone-400 hover:text-stone-600 p-1 focus:outline-none focus:ring-2 focus:ring-emerald-500 rounded-lg">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
@@ -115,7 +120,7 @@
         </div>
 
         {{-- Product Grid --}}
-        <main class="lg:col-span-3 space-y-8">
+        <section class="lg:col-span-3 space-y-8" aria-label="Product Catalog">
             @if($products->isEmpty())
                 <div class="p-8 sm:p-12 text-center bg-white rounded-3xl border border-stone-200/80 shadow-sm space-y-5">
                     <div class="w-16 h-16 mx-auto rounded-2xl bg-emerald-50 text-emerald-800 flex items-center justify-center border border-emerald-100 shadow-inner">
@@ -182,7 +187,7 @@
                     {{ $products->withQueryString()->links() }}
                 </div>
             @endif
-        </main>
+        </section>
     </div>
 </div>
 @endsection

@@ -156,6 +156,7 @@
                         <img :src="activeImageUrl"
                              alt="{{ $product->name }}"
                              loading="eager"
+                             fetchpriority="high"
                              class="w-full h-full object-cover object-center transition-all duration-300 group-hover:scale-105">
                     </div>
                 </template>
@@ -165,6 +166,7 @@
                             <img src="{{ $primaryImage->url }}"
                                  alt="{{ $primaryImage->alt_text ?? $product->name }}"
                                  loading="eager"
+                                 fetchpriority="high"
                                  class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300">
                         </div>
                     @else
@@ -362,13 +364,14 @@
 
                 <div class="flex items-center gap-4">
                     {{-- Quantity Selector --}}
-                    <div class="w-32">
+                    <div class="w-36">
                         <label for="pdp-quantity" class="sr-only">Quantity</label>
                         <div class="flex items-center border border-stone-300 rounded-xl bg-white overflow-hidden">
                             <button type="button"
                                     @click="if (quantity > 1) quantity--"
                                     :disabled="quantity <= 1 || !currentVariant || currentVariant.stock <= 0"
-                                    class="px-3 py-2.5 text-stone-600 hover:bg-stone-100 transition-colors disabled:opacity-40">
+                                    aria-label="Decrease quantity"
+                                    class="w-11 h-11 flex items-center justify-center text-stone-600 hover:bg-stone-100 transition-colors disabled:opacity-40 focus:outline-none focus:ring-2 focus:ring-emerald-600">
                                 -
                             </button>
                             <input type="number"
@@ -378,12 +381,14 @@
                                    :max="maxQuantity"
                                    x-model.number="quantity"
                                    value="1"
+                                   aria-label="Item quantity"
                                    :disabled="!currentVariant || currentVariant.stock <= 0"
                                    class="w-full text-center border-0 text-sm font-semibold text-stone-800 focus:ring-0 p-0 disabled:bg-stone-50 disabled:text-stone-400">
                             <button type="button"
                                     @click="if (quantity < maxQuantity) quantity++"
                                     :disabled="quantity >= maxQuantity || !currentVariant || currentVariant.stock <= 0"
-                                    class="px-3 py-2.5 text-stone-600 hover:bg-stone-100 transition-colors disabled:opacity-40">
+                                    aria-label="Increase quantity"
+                                    class="w-11 h-11 flex items-center justify-center text-stone-600 hover:bg-stone-100 transition-colors disabled:opacity-40 focus:outline-none focus:ring-2 focus:ring-emerald-600">
                                 +
                             </button>
                         </div>

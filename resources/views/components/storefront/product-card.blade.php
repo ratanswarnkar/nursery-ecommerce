@@ -13,11 +13,13 @@
 <div class="group relative flex flex-col bg-white rounded-2xl border border-stone-200/80 hover:border-emerald-300 hover:shadow-xl hover:shadow-emerald-950/5 transition-all duration-300 overflow-hidden">
     {{-- Image Container --}}
     <div class="relative aspect-square w-full bg-stone-100 overflow-hidden">
-        <a href="{{ route('products.show', $product->slug) }}" class="block w-full h-full">
+        <a href="{{ route('products.show', $product->slug) }}" class="block w-full h-full" aria-label="View {{ $product->name }}">
             @if($imageUrl)
                 <img src="{{ $imageUrl }}"
                      alt="{{ $primaryImage->alt_text ?? $product->name }}"
                      loading="lazy"
+                     width="400"
+                     height="400"
                      class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out">
             @else
                 <div class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-stone-100 to-emerald-50/40 text-stone-400 group-hover:text-emerald-600 transition-colors">
@@ -99,7 +101,8 @@
             </div>
 
             <a href="{{ route('products.show', $product->slug) }}"
-               class="inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-800 hover:bg-emerald-700 hover:text-white transition-colors duration-200">
+               aria-label="View details for {{ $product->name }}"
+               class="inline-flex items-center justify-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-800 hover:bg-emerald-700 hover:text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-600">
                 <span>View</span>
                 <svg class="w-3.5 h-3.5 ml-1" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>

@@ -166,6 +166,7 @@
                                        value="{{ $item->quantity }}"
                                        min="1"
                                        max="50"
+                                       aria-label="Quantity for {{ $entry['variant']->product->name ?? 'plant' }}"
                                        class="w-16 px-2.5 py-1.5 text-center text-xs font-semibold rounded-xl border border-stone-300 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600">
                                 <button type="submit"
                                         class="px-2.5 py-1.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold transition-colors">
@@ -185,8 +186,9 @@
                                 @method('DELETE')
                                 <button type="submit"
                                         title="Remove item"
+                                        aria-label="Remove {{ $entry['variant']->product->name ?? 'plant' }} from cart"
                                         class="p-2 rounded-xl text-stone-400 hover:text-rose-600 hover:bg-rose-50 transition-colors">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                     </svg>
                                 </button>

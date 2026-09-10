@@ -44,9 +44,9 @@
 
             <!-- Botanical Branding Logo -->
             <div class="flex items-center">
-                <a href="{{ route('home') }}" class="storefront-logo flex items-center gap-2.5 group">
-                    <div class="storefront-logo-icon w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-600 to-green-700 flex items-center justify-center text-white shadow-md shadow-emerald-700/20 group-hover:scale-105 transition-transform duration-200">
-                        <svg class="w-6 h-6" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <a href="{{ route('home') }}" class="storefront-logo max-w-[140px] sm:max-w-[180px] flex items-center gap-2 sm:gap-2.5 group">
+                    <div class="storefront-logo-icon w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-emerald-600 to-green-700 flex items-center justify-center text-white shadow-md shadow-emerald-700/20 group-hover:scale-105 transition-transform duration-200">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                         </svg>
                     </div>
@@ -60,7 +60,9 @@
             <!-- Desktop Search Bar -->
             <div class="hidden md:flex flex-1 max-w-lg mx-4">
                 <form method="GET" action="{{ route('shop.index') }}" class="w-full relative">
+                    <label for="header-search-desktop" class="sr-only">Search indoor plants, saplings, planters, soil</label>
                     <input type="text" 
+                           id="header-search-desktop"
                            name="q" 
                            value="{{ request('q') }}"
                            placeholder="Search indoor plants, saplings, planters, soil..." 
@@ -88,7 +90,10 @@
                         <button type="button" 
                                 @click="userMenuOpen = !userMenuOpen" 
                                 @click.away="userMenuOpen = false"
-                                class="flex items-center gap-2 p-2 rounded-lg text-slate-700 hover:text-emerald-700 hover:bg-slate-100 transition focus:outline-none">
+                                aria-haspopup="true"
+                                :aria-expanded="userMenuOpen.toString()"
+                                aria-label="Customer account menu"
+                                class="flex items-center gap-2 p-2 rounded-lg text-slate-700 hover:text-emerald-700 hover:bg-slate-100 transition focus:outline-none focus:ring-2 focus:ring-emerald-500">
                             <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs">
                                 {{ strtoupper(substr(auth('customer')->user()->name ?: 'C', 0, 1)) }}
                             </div>
@@ -135,7 +140,8 @@
 
                 <!-- Shopping Cart Icon with Live Count Badge -->
                 <a href="{{ route('cart.index') }}" 
-                   class="relative inline-flex items-center justify-center p-2.5 text-slate-700 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition group"
+                   class="relative inline-flex items-center justify-center p-2.5 text-slate-700 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition group focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                   aria-label="Shopping Cart with {{ $cartCount }} items"
                    title="View Shopping Cart">
                     <svg class="w-6 h-6" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
@@ -169,9 +175,11 @@
     <!-- Mobile Drawer Menu & Backdrop -->
     <div x-show="mobileMenuOpen" 
          x-cloak 
+         @keydown.escape.window="mobileMenuOpen = false"
          class="relative z-50 lg:hidden" 
          role="dialog" 
-         aria-modal="true">
+         aria-modal="true"
+         aria-label="Mobile navigation menu">
         <!-- Backdrop -->
         <div x-show="mobileMenuOpen"
              x-transition:enter="transition-opacity ease-linear duration-200"
@@ -197,7 +205,8 @@
                     <span class="text-lg font-bold text-slate-900">Nursery Navigation</span>
                     <button type="button" 
                             @click="mobileMenuOpen = false"
-                            class="p-2 rounded-lg text-slate-400 hover:text-slate-600 focus:outline-none">
+                            aria-label="Close mobile navigation menu"
+                            class="p-2 rounded-lg text-slate-400 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500">
                         <svg class="w-6 h-6" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -207,7 +216,9 @@
                 <!-- Mobile Search Form -->
                 <div class="px-4 py-3">
                     <form method="GET" action="{{ route('shop.index') }}">
+                        <label for="header-search-mobile" class="sr-only">Search plants</label>
                         <input type="text" 
+                               id="header-search-mobile"
                                name="q" 
                                value="{{ request('q') }}"
                                placeholder="Search plants..." 
