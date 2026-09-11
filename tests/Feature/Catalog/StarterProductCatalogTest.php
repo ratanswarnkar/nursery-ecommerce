@@ -6,6 +6,7 @@ use App\Models\Admin;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Services\Order\OrderCalculationService;
 use Database\Seeders\AdminRbacSeeder;
 use Database\Seeders\DevelopmentAdminSeeder;
 use Database\Seeders\ProductCategorySeeder;
@@ -162,6 +163,8 @@ class StarterProductCatalogTest extends TestCase
         $response->assertSee('ONLY within Delhi NCR');
         $response->assertSee('delivered within 3 days');
         $response->assertSee('ABOVE ₹1,000');
+        $response->assertDontSee('₹150');
+        $response->assertDontSee('₹99');
     }
 
     public function test_shop_and_category_pages_display_starter_products(): void
@@ -207,6 +210,24 @@ class StarterProductCatalogTest extends TestCase
         $cartResponse = $this->get(route('cart.index'));
         $cartResponse->assertOk();
         $cartResponse->assertSee('Money Plant Golden Pothos');
+
+        // Verify delivery rules with OrderCalculationService
+        $calculationService = app(OrderCalculationService::class);
+
+        // 1. Strictly > ₹1,000 qualifies for free delivery
+        $this->assertEquals('0.00', $calculationService->calculateShipping('1000.01'));
+        $this->assertEquals('0.00', $calculationService->calculateShipping('1500.00'));
+
+        // 2. Exactly ₹1,000 does NOT qualify for free delivery; uses pending configured flat rate (default 0.00)
+        $configuredRate = config('ecommerce.shipping.flat_rate', '0.00');
+        $this->assertEquals($configuredRate, $calculationService->calculateShipping('1000.00'));
+
+        // 3. Below ₹1,000 does NOT qualify for free delivery; uses pending configured flat rate
+        $this->assertEquals($configuredRate, $calculationService->calculateShipping('598.00'));
+
+        // 4. Assert no invented commercial fees (₹150 or ₹99) are hardcoded or set
+        $this->assertNotEquals('150.00', $configuredRate, 'Delivery charge must NOT be invented as ₹150.');
+        $this->assertNotEquals('99.00', $configuredRate, 'Delivery charge must NOT be invented as ₹99.');
     }
 
     public function test_admin_can_view_and_edit_starter_product(): void
