@@ -67,6 +67,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AdminRbacSeeder::class,
             DevelopmentAdminSeeder::class,
+            ProductCategorySeeder::class,
         ]);
     }
 }

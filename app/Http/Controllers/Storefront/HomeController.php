@@ -19,12 +19,32 @@ class HomeController extends Controller
     {
         $featuredProducts = $this->catalogService->getFeaturedProducts(8);
 
+        $agreedCategorySlugs = [
+            'indoor-plants',
+            'flowering-plants',
+            'air-purifying',
+            'fruit-plants',
+            'outdoor-plants',
+            'herbal-medicinal-plants',
+            'flowering-saplings',
+            'terracotta-pots',
+            'plant-care',
+        ];
+
         $rootCategories = Category::active()
-            ->root()
+            ->whereIn('slug', $agreedCategorySlugs)
             ->orderBy('sort_order')
             ->orderBy('name')
-            ->take(6)
             ->get();
+
+        // Fallback for isolated test environments if specific slugs were not pre-seeded
+        if ($rootCategories->isEmpty()) {
+            $rootCategories = Category::active()
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->take(9)
+                ->get();
+        }
 
         $newArrivals = $this->catalogService->getFilteredProducts(['sort' => 'newest'], 4);
 

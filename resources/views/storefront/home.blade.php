@@ -144,14 +144,16 @@
                 </a>
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
                 @foreach($rootCategories as $category)
                     @php
                         $slug = strtolower($category->slug);
                         $isPlanter = str_contains($slug, 'planter') || str_contains($slug, 'pot') || str_contains($slug, 'terracotta');
-                        $isFlower = str_contains($slug, 'flower') || str_contains($slug, 'bloom');
+                        $isFlower = str_contains($slug, 'flower') || str_contains($slug, 'bloom') || str_contains($slug, 'sapling');
                         $isAir = str_contains($slug, 'air') || str_contains($slug, 'purif');
-                        $isCare = str_contains($slug, 'care') || str_contains($slug, 'soil') || str_contains($slug, 'nutri');
+                        $isCare = str_contains($slug, 'care') || str_contains($slug, 'soil') || str_contains($slug, 'nutri') || str_contains($slug, 'mix');
+                        $isFruit = str_contains($slug, 'fruit') || str_contains($slug, 'orchard');
+                        $isHerbal = str_contains($slug, 'herb') || str_contains($slug, 'medic') || str_contains($slug, 'tulsi');
                     @endphp
                     <a href="{{ route('categories.show', $category->slug) }}"
                        class="group relative flex flex-col items-center p-5 rounded-2xl bg-white border border-stone-200/80 hover:border-emerald-400 hover:shadow-lg hover:shadow-emerald-900/5 transition-all text-center">
@@ -172,6 +174,14 @@
                                 <svg class="w-7 h-7 stroke-1.5" width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
                                 </svg>
+                            @elseif($isFruit)
+                                <svg class="w-7 h-7 stroke-1.5" width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v3m0 0a6 6 0 106 6c0-2.5-1.5-4.5-3.5-5.5M12 6c-2.5 1-4 3-4 5.5"/>
+                                </svg>
+                            @elseif($isHerbal)
+                                <svg class="w-7 h-7 stroke-1.5" width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                                </svg>
                             @else
                                 <svg class="w-7 h-7 stroke-1.5" width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-.778.099-1.533.284-2.253"/>
@@ -183,6 +193,31 @@
                         </h3>
                     </a>
                 @endforeach
+
+                {{-- Dedicated Landscaping Services Card --}}
+                <a href="{{ route('services.landscaping') }}"
+                   class="group relative flex flex-col items-center justify-between p-5 rounded-2xl bg-gradient-to-b from-emerald-50/80 to-emerald-100/60 border border-emerald-300 hover:border-emerald-500 hover:shadow-lg hover:shadow-emerald-900/10 transition-all text-center">
+                    <span class="absolute top-2.5 right-2.5 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-700 text-white">
+                        Service
+                    </span>
+                    <div class="w-14 h-14 rounded-full bg-emerald-800 text-white flex items-center justify-center mb-3 group-hover:scale-105 group-hover:bg-emerald-900 transition-all duration-300 shadow-sm">
+                        <svg class="w-7 h-7 stroke-1.5" width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-emerald-950 text-sm group-hover:text-emerald-800 transition-colors">
+                            Landscaping Services
+                        </h3>
+                        <p class="text-[11px] text-emerald-800/90 mt-1 line-clamp-2 leading-tight">
+                            Transform your garden or outdoor space with professional landscaping solutions.
+                        </p>
+                    </div>
+                    <span class="mt-2.5 inline-flex items-center text-xs font-bold text-emerald-800 group-hover:text-emerald-950 gap-0.5">
+                        <span>Explore</span>
+                        <span>&rarr;</span>
+                    </span>
+                </a>
             </div>
         </section>
     @endif

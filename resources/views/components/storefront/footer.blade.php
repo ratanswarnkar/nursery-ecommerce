@@ -82,24 +82,25 @@
 
             <!-- Col 2: Categories -->
             <div>
-                <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-3">Popular Categories</h4>
-                @php
-                    $succulentCat = \App\Models\Category::where('is_active', true)->whereIn('slug', ['succulents-cacti', 'succulents'])->first();
-                    $succulentUrl = $succulentCat ? route('categories.show', $succulentCat->slug) : route('categories.show', 'indoor-plants');
-                @endphp
-                <ul class="space-y-2 text-xs text-slate-400">
-                    <li><a href="{{ route('categories.show', 'air-purifying') }}" class="hover:text-emerald-400 transition">Indoor Air Purifiers</a></li>
-                    <li><a href="{{ route('categories.show', 'flowering-plants') }}" class="hover:text-emerald-400 transition">Flowering Saplings</a></li>
-                    <li><a href="{{ $succulentUrl }}" class="hover:text-emerald-400 transition">Succulents & Cacti</a></li>
-                    <li><a href="{{ route('categories.show', 'terracotta-pots') }}" class="hover:text-emerald-400 transition">Terracotta Planters</a></li>
-                    <li><a href="{{ route('categories.show', 'plant-care') }}" class="hover:text-emerald-400 transition">Organic Potting Mix</a></li>
+                <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-3">Product Categories</h4>
+                <ul class="space-y-1.5 text-xs text-slate-400">
+                    <li><a href="{{ route('categories.show', 'indoor-plants') }}" class="hover:text-emerald-400 transition">Indoor Plants</a></li>
+                    <li><a href="{{ route('categories.show', 'flowering-plants') }}" class="hover:text-emerald-400 transition">Flowering Plants</a></li>
+                    <li><a href="{{ route('categories.show', 'air-purifying') }}" class="hover:text-emerald-400 transition">Air Purifying Plants</a></li>
+                    <li><a href="{{ route('categories.show', 'fruit-plants') }}" class="hover:text-emerald-400 transition">Fruit Plants</a></li>
+                    <li><a href="{{ route('categories.show', 'outdoor-plants') }}" class="hover:text-emerald-400 transition">Outdoor Plants</a></li>
+                    <li><a href="{{ route('categories.show', 'herbal-medicinal-plants') }}" class="hover:text-emerald-400 transition">Herbal &amp; Medicinal</a></li>
+                    <li><a href="{{ route('categories.show', 'flowering-saplings') }}" class="hover:text-emerald-400 transition">Flowering Saplings</a></li>
+                    <li><a href="{{ route('categories.show', 'terracotta-pots') }}" class="hover:text-emerald-400 transition">Terracotta Pots</a></li>
+                    <li><a href="{{ route('categories.show', 'plant-care') }}" class="hover:text-emerald-400 transition">Plant Care / Potting Mix</a></li>
                 </ul>
             </div>
 
-            <!-- Col 3: Customer Care -->
+            <!-- Col 3: Customer Care & Services -->
             <div>
-                <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-3">Customer Support</h4>
+                <h4 class="text-xs font-bold text-white uppercase tracking-wider mb-3">Customer Care &amp; Services</h4>
                 <ul class="space-y-2 text-xs text-slate-400">
+                    <li><a href="{{ route('services.landscaping') }}" class="text-emerald-400 hover:text-emerald-300 font-semibold transition flex items-center gap-1"><span>Landscaping Services</span></a></li>
                     <li><a href="{{ route('cart.index') }}" class="hover:text-emerald-400 transition">View Shopping Cart</a></li>
                     <li><a href="{{ route('customer.login') }}" class="hover:text-emerald-400 transition">Customer Login / OTP</a></li>
                     <li><a href="{{ route('account.orders.index') }}" class="hover:text-emerald-400 transition">My Orders</a></li>

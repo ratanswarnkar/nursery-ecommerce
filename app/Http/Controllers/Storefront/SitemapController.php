@@ -34,7 +34,15 @@ class SitemapController extends Controller
             'priority' => '0.9',
         ];
 
-        // 2. Public Policy & Information Pages
+        // 2. Public Service Pages
+        $urls[] = [
+            'loc' => route('services.landscaping'),
+            'lastmod' => now()->startOfWeek()->toAtomString(),
+            'changefreq' => 'weekly',
+            'priority' => '0.8',
+        ];
+
+        // 3. Public Policy & Information Pages
         $policyRoutes = [
             'policy.shipping',
             'policy.contact',

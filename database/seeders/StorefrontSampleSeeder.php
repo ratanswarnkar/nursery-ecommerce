@@ -42,14 +42,14 @@ class StorefrontSampleSeeder extends Seeder
 
         // Ensure storage directory for product images exists
         $storageDir = storage_path('app/public/products');
-        if (!File::isDirectory($storageDir)) {
+        if (! File::isDirectory($storageDir)) {
             File::makeDirectory($storageDir, 0755, true);
         }
 
         // Copy a sample image for testing
         $sampleSource = public_path('images/hero-botanical-plants.jpg');
-        $sampleTarget = $storageDir . '/sample-plant.jpg';
-        if (File::exists($sampleSource) && !File::exists($sampleTarget)) {
+        $sampleTarget = $storageDir.'/sample-plant.jpg';
+        if (File::exists($sampleSource) && ! File::exists($sampleTarget)) {
             File::copy($sampleSource, $sampleTarget);
         }
 
@@ -86,7 +86,27 @@ class StorefrontSampleSeeder extends Seeder
 
         $plantCare = Category::firstOrCreate(
             ['slug' => 'plant-care'],
-            ['name' => 'Plant Care & Soils', 'description' => 'Organic composts, slow-release bio-nutrients, and airy peat-free blends.', 'is_active' => true, 'sort_order' => 4]
+            ['name' => 'Plant Care / Potting Mix', 'description' => 'Organic composts, slow-release bio-nutrients, and airy peat-free blends.', 'is_active' => true, 'sort_order' => 4]
+        );
+
+        $fruitPlants = Category::firstOrCreate(
+            ['slug' => 'fruit-plants'],
+            ['name' => 'Fruit Plants', 'description' => 'Organic fruiting trees and saplings ideal for gardens and terraces.', 'is_active' => true, 'sort_order' => 5]
+        );
+
+        $outdoorPlants = Category::firstOrCreate(
+            ['slug' => 'outdoor-plants'],
+            ['name' => 'Outdoor Plants', 'description' => 'Sun-loving shrubs, hedges, and hardy outdoor foliage.', 'is_active' => true, 'sort_order' => 6]
+        );
+
+        $herbalPlants = Category::firstOrCreate(
+            ['slug' => 'herbal-medicinal-plants'],
+            ['name' => 'Herbal & Medicinal Plants', 'description' => 'Sacred Tulsi, Aloe Vera, Mint, and natural healing herbs.', 'is_active' => true, 'sort_order' => 7]
+        );
+
+        $floweringSaplings = Category::firstOrCreate(
+            ['slug' => 'flowering-saplings'],
+            ['name' => 'Flowering Saplings', 'description' => 'Nurtured young flower saplings ready for garden beds and planters.', 'is_active' => true, 'sort_order' => 8]
         );
 
         // 2. Brands
@@ -165,7 +185,7 @@ class StorefrontSampleSeeder extends Seeder
         );
         $p1->categories()->syncWithoutDetaching([
             $indoor->id => ['is_primary' => true],
-            $foliage->id => ['is_primary' => false]
+            $foliage->id => ['is_primary' => false],
         ]);
 
         if (File::exists($sampleTarget)) {
@@ -245,7 +265,7 @@ class StorefrontSampleSeeder extends Seeder
         );
         $p2->categories()->syncWithoutDetaching([
             $indoor->id => ['is_primary' => true],
-            $airPurifying->id => ['is_primary' => false]
+            $airPurifying->id => ['is_primary' => false],
         ]);
 
         $v2 = ProductVariant::firstOrCreate(
@@ -281,7 +301,7 @@ class StorefrontSampleSeeder extends Seeder
         );
         $p3->categories()->syncWithoutDetaching([
             $indoor->id => ['is_primary' => true],
-            $flowering->id => ['is_primary' => false]
+            $flowering->id => ['is_primary' => false],
         ]);
 
         $v3 = ProductVariant::firstOrCreate(
@@ -317,7 +337,7 @@ class StorefrontSampleSeeder extends Seeder
         );
         $p4->categories()->syncWithoutDetaching([
             $planters->id => ['is_primary' => true],
-            $terracottaCategory->id => ['is_primary' => false]
+            $terracottaCategory->id => ['is_primary' => false],
         ]);
 
         $v4 = ProductVariant::firstOrCreate(
@@ -352,7 +372,7 @@ class StorefrontSampleSeeder extends Seeder
             ]
         );
         $p5->categories()->syncWithoutDetaching([
-            $plantCare->id => ['is_primary' => true]
+            $plantCare->id => ['is_primary' => true],
         ]);
 
         $v5 = ProductVariant::firstOrCreate(
@@ -387,7 +407,7 @@ class StorefrontSampleSeeder extends Seeder
         );
         $p6->categories()->syncWithoutDetaching([
             $indoor->id => ['is_primary' => true],
-            $foliage->id => ['is_primary' => false]
+            $foliage->id => ['is_primary' => false],
         ]);
 
         $v6 = ProductVariant::firstOrCreate(

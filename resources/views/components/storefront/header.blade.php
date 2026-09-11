@@ -17,13 +17,33 @@
         $cartCount = 0;
     }
 
+    $agreedCategorySlugs = [
+        'indoor-plants',
+        'flowering-plants',
+        'air-purifying',
+        'fruit-plants',
+        'outdoor-plants',
+        'herbal-medicinal-plants',
+        'flowering-saplings',
+        'terracotta-pots',
+        'plant-care',
+    ];
+
     $navCategories = \App\Models\Category::query()
         ->where('is_active', true)
-        ->whereNull('parent_id')
+        ->whereIn('slug', $agreedCategorySlugs)
         ->orderBy('sort_order')
         ->orderBy('name')
-        ->take(6)
         ->get();
+
+    if ($navCategories->isEmpty()) {
+        $navCategories = \App\Models\Category::query()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->take(9)
+            ->get();
+    }
 @endphp
 
 <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-200/80 shadow-xs">
@@ -156,19 +176,25 @@
         </div>
 
         <!-- Desktop Category Sub-bar Navigation -->
-        <nav class="hidden lg:flex items-center gap-7 py-2.5 border-t border-slate-100 text-[13px] font-semibold text-slate-600 overflow-x-auto scrollbar-none">
-            <a href="{{ route('shop.index') }}" class="hover:text-emerald-700 transition flex items-center gap-1">
-                <span>All Products</span>
-            </a>
-            @foreach($navCategories as $navCat)
-                <a href="{{ route('categories.show', $navCat->slug) }}" class="hover:text-emerald-700 transition whitespace-nowrap">
-                    {{ $navCat->name }}
+        <nav class="hidden lg:flex items-center justify-between py-2.5 border-t border-slate-100 text-[13px] font-semibold text-slate-600">
+            <div class="flex items-center gap-6 overflow-x-auto scrollbar-none">
+                <a href="{{ route('shop.index') }}" class="hover:text-emerald-700 transition flex items-center gap-1 shrink-0 font-bold text-slate-800">
+                    <span>All Plants</span>
                 </a>
-            @endforeach
-            <span class="text-slate-300">|</span>
-            <a href="{{ route('shop.index', ['sort' => 'featured']) }}" class="text-emerald-700 hover:text-emerald-800 transition font-bold flex items-center gap-1">
-                <span>Featured Plants</span>
-            </a>
+                @foreach($navCategories as $navCat)
+                    <a href="{{ route('categories.show', $navCat->slug) }}" class="hover:text-emerald-700 transition whitespace-nowrap">
+                        {{ $navCat->name }}
+                    </a>
+                @endforeach
+            </div>
+            <div class="flex items-center gap-4 pl-4 shrink-0 border-l border-slate-200">
+                <a href="{{ route('services.landscaping') }}" class="text-emerald-700 hover:text-emerald-900 transition font-bold flex items-center gap-1.5 whitespace-nowrap">
+                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582"/>
+                    </svg>
+                    <span>Landscaping Services</span>
+                </a>
+            </div>
         </nav>
     </div>
 
@@ -231,12 +257,18 @@
                     <a href="{{ route('home') }}" class="block px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700">Home</a>
                     <a href="{{ route('shop.index') }}" class="block px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700 font-bold text-emerald-800">Shop All Plants</a>
                     
-                    <div class="pt-2 pb-1 text-xs font-bold uppercase tracking-wider text-slate-400 px-3">Categories</div>
+                    <div class="pt-2 pb-1 text-xs font-bold uppercase tracking-wider text-slate-400 px-3">Product Categories</div>
                     @foreach($navCategories as $navCat)
                         <a href="{{ route('categories.show', $navCat->slug) }}" class="block px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700">
                             {{ $navCat->name }}
                         </a>
                     @endforeach
+
+                    <div class="pt-3 pb-1 text-xs font-bold uppercase tracking-wider text-slate-400 px-3">Services</div>
+                    <a href="{{ route('services.landscaping') }}" class="flex items-center justify-between px-3 py-2 rounded-lg bg-emerald-50/80 text-emerald-800 font-semibold hover:bg-emerald-100 transition">
+                        <span>Landscaping Services</span>
+                        <span class="text-[10px] font-bold uppercase tracking-wider bg-emerald-700 text-white px-1.5 py-0.5 rounded">Service</span>
+                    </a>
 
                     <div class="pt-4 pb-1 text-xs font-bold uppercase tracking-wider text-slate-400 px-3">Account & Cart</div>
                     <a href="{{ route('cart.index') }}" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-emerald-50 hover:text-emerald-700">
