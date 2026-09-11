@@ -277,21 +277,23 @@ class PaymentService
 
                 $previousOrderStatus = $lockedOrder->status;
 
-                // Move order to processing upon payment capture
-                $lockedOrder->update([
-                    'payment_status' => PaymentStatus::PAID,
-                    'status' => OrderStatus::PROCESSING,
-                ]);
+                // Move order to processing upon payment capture if not already paid
+                if ($lockedOrder->payment_status !== PaymentStatus::PAID) {
+                    $lockedOrder->update([
+                        'payment_status' => PaymentStatus::PAID,
+                        'status' => OrderStatus::PROCESSING,
+                    ]);
 
-                // Record order status history
-                OrderStatusHistory::create([
-                    'order_id' => $lockedOrder->id,
-                    'from_status' => $previousOrderStatus,
-                    'to_status' => OrderStatus::PROCESSING,
-                    'comment' => "Payment verified successfully via gateway [{$lockedTxn->gateway}].",
-                    'changed_by_type' => null,
-                    'changed_by_id' => null,
-                ]);
+                    // Record order status history only once
+                    OrderStatusHistory::create([
+                        'order_id' => $lockedOrder->id,
+                        'from_status' => $previousOrderStatus,
+                        'to_status' => OrderStatus::PROCESSING,
+                        'comment' => "Payment verified successfully via gateway [{$lockedTxn->gateway}].",
+                        'changed_by_type' => null,
+                        'changed_by_id' => null,
+                    ]);
+                }
 
                 // Audit log payment success
                 $customer = $lockedOrder->customer;
@@ -323,11 +325,12 @@ class PaymentService
                     'payload' => $mergedPayload,
                 ]);
 
-                // Decoupled lifecycle: Update payment status only.
-                // NOTE: Do NOT cancel order or release inventory here (reserved for Phase 6.2-B).
-                $lockedOrder->update([
-                    'payment_status' => PaymentStatus::FAILED,
-                ]);
+                // Decoupled lifecycle: Update payment status only if order is not already PAID
+                if ($lockedOrder->payment_status !== PaymentStatus::PAID) {
+                    $lockedOrder->update([
+                        'payment_status' => PaymentStatus::FAILED,
+                    ]);
+                }
 
                 $customer = $lockedOrder->customer;
                 if ($customer) {
@@ -356,9 +359,12 @@ class PaymentService
                     'payload' => $mergedPayload,
                 ]);
 
-                $lockedOrder->update([
-                    'payment_status' => PaymentStatus::CANCELLED,
-                ]);
+                // Only update order payment status if not already PAID
+                if ($lockedOrder->payment_status !== PaymentStatus::PAID) {
+                    $lockedOrder->update([
+                        'payment_status' => PaymentStatus::CANCELLED,
+                    ]);
+                }
 
                 $this->auditLogger->logSecurityEvent('payment.cancelled', [
                     'order_id' => $lockedOrder->id,
@@ -379,6 +385,7 @@ class PaymentService
     /**
      * Cancel an existing pending payment transaction.
      *
+     * @throws DomainException
      * @throws InvalidPaymentTransitionException
      */
     public function cancelPayment(PaymentTransaction|string $transaction, ?string $reason = null): PaymentTransaction
@@ -398,6 +405,16 @@ class PaymentService
                 ->lockForUpdate()
                 ->firstOrFail();
 
+            // Idempotency: if already cancelled, return cleanly
+            if ($lockedTxn->status === PaymentStatus::CANCELLED) {
+                return $lockedTxn;
+            }
+
+            // Never cancel payment if order is already PAID
+            if ($lockedOrder->payment_status === PaymentStatus::PAID) {
+                throw new DomainException("Cannot cancel payment: Order [{$lockedOrder->order_number}] is already paid.");
+            }
+
             if (! $lockedTxn->status->canTransitionTo(PaymentStatus::CANCELLED)) {
                 throw new InvalidPaymentTransitionException($lockedTxn->status, PaymentStatus::CANCELLED);
             }
@@ -409,9 +426,11 @@ class PaymentService
                 'failure_message' => $reason ?: 'Payment cancelled.',
             ]);
 
-            $lockedOrder->update([
-                'payment_status' => PaymentStatus::CANCELLED,
-            ]);
+            if ($lockedOrder->payment_status !== PaymentStatus::PAID) {
+                $lockedOrder->update([
+                    'payment_status' => PaymentStatus::CANCELLED,
+                ]);
+            }
 
             $this->auditLogger->logSecurityEvent('payment.cancelled', [
                 'transaction_number' => $lockedTxn->transaction_number,
@@ -426,6 +445,7 @@ class PaymentService
     /**
      * Expire an existing pending payment transaction.
      *
+     * @throws DomainException
      * @throws InvalidPaymentTransitionException
      */
     public function expirePayment(PaymentTransaction|string $transaction, ?string $reason = null): PaymentTransaction
@@ -445,6 +465,16 @@ class PaymentService
                 ->lockForUpdate()
                 ->firstOrFail();
 
+            // Idempotency: if already expired, return cleanly
+            if ($lockedTxn->status === PaymentStatus::EXPIRED) {
+                return $lockedTxn;
+            }
+
+            // Never expire payment if order is already PAID
+            if ($lockedOrder->payment_status === PaymentStatus::PAID) {
+                throw new DomainException("Cannot expire payment: Order [{$lockedOrder->order_number}] is already paid.");
+            }
+
             if (! $lockedTxn->status->canTransitionTo(PaymentStatus::EXPIRED)) {
                 throw new InvalidPaymentTransitionException($lockedTxn->status, PaymentStatus::EXPIRED);
             }
@@ -455,9 +485,11 @@ class PaymentService
                 'failure_message' => $reason ?: 'Payment expired.',
             ]);
 
-            $lockedOrder->update([
-                'payment_status' => PaymentStatus::EXPIRED,
-            ]);
+            if ($lockedOrder->payment_status !== PaymentStatus::PAID) {
+                $lockedOrder->update([
+                    'payment_status' => PaymentStatus::EXPIRED,
+                ]);
+            }
 
             $this->auditLogger->logSecurityEvent('payment.expired', [
                 'transaction_number' => $lockedTxn->transaction_number,

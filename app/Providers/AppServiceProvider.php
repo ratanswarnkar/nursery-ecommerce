@@ -34,7 +34,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(PhoneNumberNormalizer::class);
 
         $this->app->singleton(SmsSenderInterface::class, function () {
-            $driver = env('SMS_DRIVER', 'log');
+            $driver = config('services.sms.driver', 'log');
 
             return match ($driver) {
                 'null' => new NullSmsSender,
@@ -101,6 +101,30 @@ class AppServiceProvider extends ServiceProvider
             $email = (string) $request->input('email', '');
 
             return Limit::perMinutes(15, 3)->by($email.'|'.$request->ip());
+        });
+
+        // Customer checkout creation: 5 requests per minute per customer ID or IP
+        RateLimiter::for('customer-checkout', function (Request $request) {
+            $customer = auth('customer')->user();
+            $key = $customer ? "customer:{$customer->id}" : ('ip:'.$request->ip());
+
+            return Limit::perMinute(5)->by($key);
+        });
+
+        // Payment verification: 10 requests per minute per customer ID or IP
+        RateLimiter::for('payment-verify', function (Request $request) {
+            $customer = auth('customer')->user();
+            $key = $customer ? "customer:{$customer->id}" : ('ip:'.$request->ip());
+
+            return Limit::perMinute(10)->by($key);
+        });
+
+        // Payment cancellation: 10 requests per minute per customer ID or IP
+        RateLimiter::for('payment-cancel', function (Request $request) {
+            $customer = auth('customer')->user();
+            $key = $customer ? "customer:{$customer->id}" : ('ip:'.$request->ip());
+
+            return Limit::perMinute(10)->by($key);
         });
     }
 

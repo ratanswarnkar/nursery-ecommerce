@@ -15,6 +15,7 @@ use App\Services\Audit\AuditLogger;
 use App\Services\Cart\CartService;
 use App\Services\Inventory\InventoryService;
 use App\Services\Shipping\DelhiNcrEligibilityService;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -37,6 +38,33 @@ class OrderCreationService
     public function createOrder(Customer $customer, Cart $cart, array $checkoutData): Order
     {
         return DB::transaction(function () use ($customer, $cart, $checkoutData) {
+            // 0. Idempotency Guard: deterministic order creation & retry safety
+            $idempotencyKey = ! empty($checkoutData['idempotency_key']) ? trim((string) $checkoutData['idempotency_key']) : null;
+            if ($idempotencyKey !== null) {
+                if (! preg_match('/^[A-Za-z0-9_\-]+$/', $idempotencyKey)) {
+                    throw ValidationException::withMessages([
+                        'idempotency_key' => ['The idempotency key format is invalid.'],
+                    ]);
+                }
+
+                $existingOrder = Order::where('idempotency_key', $idempotencyKey)
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($existingOrder) {
+                    if ((int) $existingOrder->customer_id !== (int) $customer->id) {
+                        throw ValidationException::withMessages([
+                            'idempotency_key' => ['Unauthorized idempotency key reuse across customer accounts.'],
+                        ]);
+                    }
+
+                    return $existingOrder;
+                }
+            }
+
+            // Concurrency Guard: Lock cart row
+            Cart::where('id', $cart->id)->lockForUpdate()->first();
+
             // 1. Load cart items with variant and catalog associations
             $cart->load([
                 'items.productVariant.product.taxClass.taxRules.taxRate',
@@ -141,28 +169,39 @@ class OrderCreationService
             // 6. Generate non-sequential unique order number
             $orderNumber = $this->orderNumberGenerator->generate();
 
-            // 7. Create Order Record with full snapshots
-            $order = Order::create([
-                'order_number' => $orderNumber,
-                'customer_id' => $customer->id,
-                'customer_name' => $customer->name,
-                'customer_phone' => $customer->phone,
-                'customer_email' => $customer->email,
-                'status' => OrderStatus::PENDING,
-                'payment_status' => PaymentStatus::PENDING,
-                'shipping_status' => ShippingStatus::UNFULFILLED,
-                'currency' => 'INR',
-                'subtotal' => $totals['subtotal'],
-                'tax_amount' => $totals['tax_amount'],
-                'shipping_amount' => $totals['shipping_amount'],
-                'discount_amount' => $totals['discount_amount'],
-                'grand_total' => $totals['grand_total'],
-                'shipping_address_json' => $shippingAddressSnapshot,
-                'billing_address_json' => $billingAddressSnapshot,
-                'coupon_id' => null,
-                'coupon_code' => null,
-                'notes' => ! empty($checkoutData['notes']) ? strip_tags(trim($checkoutData['notes'])) : null,
-            ]);
+            // 7. Create Order Record with full snapshots and idempotency key
+            try {
+                $order = Order::create([
+                    'order_number' => $orderNumber,
+                    'customer_id' => $customer->id,
+                    'customer_name' => $customer->name,
+                    'customer_phone' => $customer->phone,
+                    'customer_email' => $customer->email,
+                    'status' => OrderStatus::PENDING,
+                    'payment_status' => PaymentStatus::PENDING,
+                    'shipping_status' => ShippingStatus::UNFULFILLED,
+                    'currency' => 'INR',
+                    'subtotal' => $totals['subtotal'],
+                    'tax_amount' => $totals['tax_amount'],
+                    'shipping_amount' => $totals['shipping_amount'],
+                    'discount_amount' => $totals['discount_amount'],
+                    'grand_total' => $totals['grand_total'],
+                    'shipping_address_json' => $shippingAddressSnapshot,
+                    'billing_address_json' => $billingAddressSnapshot,
+                    'coupon_id' => null,
+                    'coupon_code' => null,
+                    'idempotency_key' => $idempotencyKey,
+                    'notes' => ! empty($checkoutData['notes']) ? strip_tags(trim($checkoutData['notes'])) : null,
+                ]);
+            } catch (QueryException $e) {
+                if ($idempotencyKey && (str_contains($e->getMessage(), 'Duplicate entry') || $e->getCode() === '23000')) {
+                    $existingOrder = Order::where('idempotency_key', $idempotencyKey)->first();
+                    if ($existingOrder && (int) $existingOrder->customer_id === (int) $customer->id) {
+                        return $existingOrder;
+                    }
+                }
+                throw $e;
+            }
 
             // 8. Create OrderItem records and execute stock deduction
             foreach ($totals['lines'] as $line) {

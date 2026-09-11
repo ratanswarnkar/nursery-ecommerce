@@ -91,10 +91,16 @@ Route::middleware('web')->group(function () {
 
         // Customer Checkout Routes
         Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
-        Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+        Route::post('/checkout', [CheckoutController::class, 'store'])
+            ->middleware('throttle:customer-checkout')
+            ->name('checkout.store');
         Route::get('/checkout/payment/{order_number}', [CheckoutController::class, 'payment'])->name('checkout.payment');
-        Route::post('/checkout/payment/verify', [CheckoutController::class, 'verifyPayment'])->name('checkout.payment.verify');
-        Route::post('/checkout/payment/cancel', [CheckoutController::class, 'cancelPayment'])->name('checkout.payment.cancel');
+        Route::post('/checkout/payment/verify', [CheckoutController::class, 'verifyPayment'])
+            ->middleware('throttle:payment-verify')
+            ->name('checkout.payment.verify');
+        Route::post('/checkout/payment/cancel', [CheckoutController::class, 'cancelPayment'])
+            ->middleware('throttle:payment-cancel')
+            ->name('checkout.payment.cancel');
         Route::get('/checkout/success/{order_number}', [CheckoutController::class, 'success'])->name('checkout.success');
 
         // Customer Orders (IDOR-Protected)

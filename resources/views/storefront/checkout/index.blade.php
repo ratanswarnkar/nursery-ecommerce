@@ -34,8 +34,9 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('checkout.store') }}" id="checkout-form" x-data="{ billingSame: true }">
+    <form method="POST" action="{{ route('checkout.store') }}" id="checkout-form" x-data="{ billingSame: true, isSubmitting: false }" @submit="if (isSubmitting) { $event.preventDefault(); return false; } isSubmitting = true;">
         @csrf
+        <input type="hidden" name="idempotency_key" value="{{ (string) \Illuminate\Support\Str::uuid() }}">
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
             {{-- Left Column: Checkout Steps (Cols 1-7) --}}
@@ -362,11 +363,17 @@
                     @else
                         <button type="submit"
                                 id="place-order-btn"
-                                class="w-full py-4 px-6 rounded-2xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/20 transition-all hover:scale-[1.01] active:scale-[0.99]">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                :disabled="isSubmitting"
+                                :class="isSubmitting ? 'opacity-70 cursor-not-allowed pointer-events-none' : 'hover:scale-[1.01] active:scale-[0.99]'"
+                                class="w-full py-4 px-6 rounded-2xl bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/20 transition-all">
+                            <svg x-show="!isSubmitting" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                             </svg>
-                            <span>Place Order Now</span>
+                            <svg x-show="isSubmitting" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                            </svg>
+                            <span x-text="isSubmitting ? 'Processing Order...' : 'Place Order Now'">Place Order Now</span>
                         </button>
                     @endif
 

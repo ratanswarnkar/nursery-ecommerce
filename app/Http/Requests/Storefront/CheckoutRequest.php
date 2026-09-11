@@ -20,6 +20,7 @@ class CheckoutRequest extends FormRequest
             'billing_same_as_shipping' => ['nullable', 'boolean'],
             'billing_address_id' => ['nullable', 'integer'],
             'notes' => ['nullable', 'string', 'max:1000'],
+            'idempotency_key' => ['nullable', 'string', 'max:100', 'regex:/^[A-Za-z0-9_\-]+$/'],
         ];
     }
 

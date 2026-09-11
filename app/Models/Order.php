@@ -35,6 +35,7 @@ class Order extends Model
         'billing_address_json',
         'coupon_id',
         'coupon_code',
+        'idempotency_key',
         'notes',
     ];
 
