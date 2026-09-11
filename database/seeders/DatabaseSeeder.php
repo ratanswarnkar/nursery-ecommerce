@@ -68,6 +68,7 @@ class DatabaseSeeder extends Seeder
             AdminRbacSeeder::class,
             DevelopmentAdminSeeder::class,
             ProductCategorySeeder::class,
+            StarterProductCatalogSeeder::class,
         ]);
     }
 }
