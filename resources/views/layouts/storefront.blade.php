@@ -40,48 +40,48 @@
     <!-- Styles & Tailwind -->
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
         @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @else
-        <script src="https://cdn.tailwindcss.com"></script>
-        <script>
-            tailwind.config = {
-                theme: {
-                    extend: {
-                        fontFamily: {
-                            sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
-                            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+    @endif
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+                        serif: ['"Playfair Display"', 'Georgia', 'serif'],
+                    },
+                    colors: {
+                        terracotta: {
+                            50: '#fdf8f6',
+                            100: '#f2e8e5',
+                            200: '#eaddd7',
+                            300: '#e07a5f',
+                            400: '#d96b4f',
+                            500: '#cc5a36',
+                            600: '#bc4726',
+                            700: '#a33719',
+                            800: '#872b12',
+                            900: '#70220d',
                         },
-                        colors: {
-                            terracotta: {
-                                50: '#fdf8f6',
-                                100: '#f2e8e5',
-                                200: '#eaddd7',
-                                300: '#e07a5f',
-                                400: '#d96b4f',
-                                500: '#cc5a36',
-                                600: '#bc4726',
-                                700: '#a33719',
-                                800: '#872b12',
-                                900: '#70220d',
-                            },
-                            forest: {
-                                50: '#f2f7f4',
-                                100: '#e1ede6',
-                                200: '#c5dcce',
-                                300: '#9ec4ae',
-                                400: '#6fa687',
-                                500: '#4c8a66',
-                                600: '#397051',
-                                700: '#2e5941',
-                                800: '#264735',
-                                900: '#1b382b',
-                                950: '#0d2018',
-                            }
+                        forest: {
+                            50: '#f2f7f4',
+                            100: '#e1ede6',
+                            200: '#c5dcce',
+                            300: '#9ec4ae',
+                            400: '#6fa687',
+                            500: '#4c8a66',
+                            600: '#397051',
+                            700: '#2e5941',
+                            800: '#264735',
+                            900: '#1b382b',
+                            950: '#0d2018',
                         }
                     }
                 }
             }
-        </script>
-    @endif
+        }
+    </script>
 
     <style>
         body {
