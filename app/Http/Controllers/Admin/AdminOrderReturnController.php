@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Enums\PaymentStatus;
 use App\Enums\RefundStatus;
+use App\Enums\ReturnStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ProcessOrderRefundRequest;
 use App\Models\Order;
@@ -13,9 +14,49 @@ use App\Services\Payment\PaymentService;
 use Exception;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class AdminOrderReturnController extends Controller
 {
+    /**
+     * Display a listing of all customer return requests and statuses.
+     */
+    public function index(Request $request): View
+    {
+        $admin = auth('admin')->user();
+        abort_unless($admin && $admin->can('orders.view'), 403, 'Unauthorized to view returns.');
+
+        $query = OrderReturn::with(['order.customer', 'orderItem'])->latest();
+
+        if ($search = $request->query('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('id', $search)
+                    ->orWhere('reason', 'like', "%{$search}%")
+                    ->orWhereHas('order', function ($oq) use ($search) {
+                        $oq->where('order_number', 'like', "%{$search}%")
+                            ->orWhere('customer_name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        if ($status = $request->query('status')) {
+            $query->where('status', $status);
+        }
+
+        $metrics = [
+            'total' => OrderReturn::count(),
+            'requested' => OrderReturn::where('status', ReturnStatus::REQUESTED)->count(),
+            'approved' => OrderReturn::where('status', ReturnStatus::APPROVED)->count(),
+            'completed' => OrderReturn::where('status', ReturnStatus::COMPLETED)->count(),
+            'rejected' => OrderReturn::where('status', ReturnStatus::REJECTED)->count(),
+        ];
+
+        $returns = $query->paginate(15)->withQueryString();
+        $statuses = ReturnStatus::cases();
+
+        return view('admin.returns.index', compact('returns', 'metrics', 'statuses'));
+    }
+
     /**
      * Approve a customer return request.
      */

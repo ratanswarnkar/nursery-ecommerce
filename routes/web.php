@@ -2,15 +2,27 @@
 
 use App\Http\Controllers\Admin\AdminOrderController;
 use App\Http\Controllers\Admin\AdminOrderReturnController;
+use App\Http\Controllers\Admin\AdminUserManagementController;
 use App\Http\Controllers\Admin\AttributeController;
 use App\Http\Controllers\Admin\AttributeValueController;
 use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\CustomerManagementController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\InventoryController;
+use App\Http\Controllers\Admin\InvoiceManagementController;
+use App\Http\Controllers\Admin\PaymentTransactionController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProductImageController;
 use App\Http\Controllers\Admin\ProductVariantController;
+use App\Http\Controllers\Admin\RolePermissionController;
+use App\Http\Controllers\Admin\SecurityAuditController;
+use App\Http\Controllers\Admin\ShipmentManagementController;
+use App\Http\Controllers\Admin\TenderBillController;
+use App\Http\Controllers\Admin\TenderController;
+use App\Http\Controllers\Admin\TenderDocumentController;
+use App\Http\Controllers\Admin\TenderItemController;
+use App\Http\Controllers\Admin\TenderRequirementController;
 use App\Http\Controllers\Admin\WarehouseController;
 use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\Auth\AdminPasswordResetController;
@@ -254,6 +266,55 @@ Route::middleware('web')->prefix('admin')->name('admin.')->group(function () {
         Route::post('/orders/{order}/returns/{orderReturn}/complete', [AdminOrderReturnController::class, 'complete'])->middleware('permission:orders.update,admin')->name('orders.returns.complete');
         Route::post('/orders/{order}/returns/{orderReturn}/restock', [AdminOrderReturnController::class, 'restock'])->middleware('permission:orders.update,admin')->name('orders.returns.restock');
         Route::post('/orders/{order}/refunds', [AdminOrderReturnController::class, 'processRefund'])->middleware('permission:orders.update,admin')->name('orders.refunds.process');
+
+        // Sales & Operations (RBAC Protected)
+        Route::get('/payments', [PaymentTransactionController::class, 'index'])->middleware('permission:payments.view,admin')->name('payments.index');
+        Route::get('/shipments', [ShipmentManagementController::class, 'index'])->middleware('permission:orders.view,admin')->name('shipments.index');
+        Route::get('/returns', [AdminOrderReturnController::class, 'index'])->middleware('permission:orders.view,admin')->name('returns.index');
+        Route::get('/invoices', [InvoiceManagementController::class, 'index'])->middleware('permission:invoices.view,admin')->name('invoices.index');
+        Route::get('/invoices/{invoice}/download', [InvoiceManagementController::class, 'download'])->middleware('permission:invoices.view,admin')->name('invoices.download');
+
+        // Customers (RBAC Protected)
+        Route::get('/customers', [CustomerManagementController::class, 'index'])->middleware('permission:customers.view,admin')->name('customers.index');
+        Route::get('/customers/{customer}', [CustomerManagementController::class, 'show'])->middleware('permission:customers.view,admin')->name('customers.show');
+        Route::post('/customers/{customer}/toggle-status', [CustomerManagementController::class, 'toggleStatus'])->middleware('permission:customers.update,admin')->name('customers.toggle-status');
+
+        // Tenders (RBAC Protected)
+        Route::get('/tenders', [TenderController::class, 'index'])->middleware('permission:tenders.view,admin')->name('tenders.index');
+        Route::get('/tenders/create', [TenderController::class, 'create'])->middleware('permission:tenders.create,admin')->name('tenders.create');
+        Route::post('/tenders', [TenderController::class, 'store'])->middleware('permission:tenders.create,admin')->name('tenders.store');
+        Route::get('/tenders/{tender}', [TenderController::class, 'show'])->middleware('permission:tenders.view,admin')->name('tenders.show');
+        Route::get('/tenders/{tender}/edit', [TenderController::class, 'edit'])->middleware('permission:tenders.update,admin')->name('tenders.edit');
+        Route::put('/tenders/{tender}', [TenderController::class, 'update'])->middleware('permission:tenders.update,admin')->name('tenders.update');
+        Route::delete('/tenders/{tender}', [TenderController::class, 'destroy'])->middleware('permission:tenders.delete,admin')->name('tenders.destroy');
+        Route::post('/tenders/{tender}/status', [TenderController::class, 'updateStatus'])->middleware('permission:tenders.update,admin')->name('tenders.update-status');
+        Route::post('/tenders/{tender}/toggle-special-billing', [TenderController::class, 'toggleSpecialBilling'])->middleware('permission:tenders.update,admin')->name('tenders.toggle-special-billing');
+
+        // Tender Sub-resources
+        Route::post('/tenders/{tender}/items', [TenderItemController::class, 'store'])->middleware('permission:tenders.update,admin')->name('tenders.items.store');
+        Route::delete('/tenders/{tender}/items/{item}', [TenderItemController::class, 'destroy'])->middleware('permission:tenders.delete,admin')->name('tenders.items.destroy');
+        Route::post('/tenders/{tender}/requirements', [TenderRequirementController::class, 'store'])->middleware('permission:tenders.update,admin')->name('tenders.requirements.store');
+        Route::post('/tenders/{tender}/documents', [TenderDocumentController::class, 'store'])->middleware('permission:tenders.update,admin')->name('tenders.documents.store');
+        Route::get('/tenders/{tender}/documents/{document}/download', [TenderDocumentController::class, 'download'])->middleware('permission:tenders.view,admin')->name('tenders.documents.download');
+        Route::delete('/tenders/{tender}/documents/{document}', [TenderDocumentController::class, 'destroy'])->middleware('permission:tenders.delete,admin')->name('tenders.documents.destroy');
+        Route::post('/tenders/{tender}/bills', [TenderBillController::class, 'store'])->middleware('permission:tender-billing.create,admin')->name('tenders.bills.store');
+        Route::post('/tenders/{tender}/bills/{bill}/status', [TenderBillController::class, 'updateStatus'])->middleware('permission:tender-billing.update,admin')->name('tenders.bills.update-status');
+
+        // Access Control: Admin Users & Roles (RBAC Protected)
+        Route::get('/admins', [AdminUserManagementController::class, 'index'])->middleware('permission:users.view,admin')->name('admins.index');
+        Route::get('/admins/create', [AdminUserManagementController::class, 'create'])->middleware('permission:users.create,admin')->name('admins.create');
+        Route::post('/admins', [AdminUserManagementController::class, 'store'])->middleware('permission:users.create,admin')->name('admins.store');
+        Route::get('/admins/{admin}/edit', [AdminUserManagementController::class, 'edit'])->middleware('permission:users.update,admin')->name('admins.edit');
+        Route::put('/admins/{admin}', [AdminUserManagementController::class, 'update'])->middleware('permission:users.update,admin')->name('admins.update');
+        Route::post('/admins/{admin}/toggle-status', [AdminUserManagementController::class, 'toggleStatus'])->middleware('permission:users.update,admin')->name('admins.toggle-status');
+
+        Route::get('/roles', [RolePermissionController::class, 'index'])->middleware('permission:roles.view,admin')->name('roles.index');
+        Route::get('/roles/{role}', [RolePermissionController::class, 'show'])->middleware('permission:roles.view,admin')->name('roles.show');
+
+        // System & Security (RBAC Protected)
+        Route::get('/audit-logs', [SecurityAuditController::class, 'auditLogs'])->middleware('permission:audit-logs.view,admin')->name('audit-logs.index');
+        Route::get('/login-activity', [SecurityAuditController::class, 'loginActivity'])->middleware('permission:audit-logs.view,admin')->name('login-activity.index');
+        Route::get('/settings', [SecurityAuditController::class, 'settings'])->middleware('permission:settings.view,admin')->name('settings.index');
 
         // Granular RBAC Demonstration Routes
         Route::get('/test/orders-view', function () {

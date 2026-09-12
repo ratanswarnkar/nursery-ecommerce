@@ -237,7 +237,7 @@ class StarterProductCatalogTest extends TestCase
         $product = Product::where('slug', 'money-plant-golden-pothos')->firstOrFail();
 
         // Admin product listing
-        $response = $this->actingAs($admin, 'admin')->get(route('admin.products.index'));
+        $response = $this->actingAs($admin, 'admin')->get(route('admin.products.index', ['search' => 'Money Plant']));
         $response->assertOk();
         $response->assertSee('Money Plant Golden Pothos');
 
