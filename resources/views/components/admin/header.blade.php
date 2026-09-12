@@ -1,6 +1,13 @@
 <header class="admin-header">
-    <div class="admin-header-title">
-        @yield('header_title', 'Management Portal')
+    <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <button type="button" class="mobile-menu-toggle" onclick="toggleAdminSidebar()" aria-label="Toggle navigation menu">
+            <svg style="width: 1.25rem; height: 1.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+        </button>
+        <div class="admin-header-title">
+            @yield('header_title', 'Management Portal')
+        </div>
     </div>
 
     <div class="admin-header-actions">

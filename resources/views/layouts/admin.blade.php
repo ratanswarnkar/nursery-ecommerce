@@ -64,6 +64,17 @@
         function closeConfirmModal() {
             document.getElementById('confirm-modal').style.display = 'none';
         }
+
+        function toggleAdminSidebar() {
+            const sidebar = document.getElementById('admin-sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            if (sidebar) {
+                sidebar.classList.toggle('open');
+            }
+            if (backdrop) {
+                backdrop.classList.toggle('open');
+            }
+        }
     </script>
     @stack('scripts')
 </body>
