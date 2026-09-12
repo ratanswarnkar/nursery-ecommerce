@@ -173,6 +173,22 @@
                 @error('initial_cost_price') <div class="form-error">{{ $message }}</div> @enderror
             </div>
         </div>
+
+        <div class="form-grid" style="margin-top: 1rem;">
+            <div class="form-group">
+                <label for="initial_stock" class="form-label">Initial Stock (MAIN-WH-01 Central Warehouse)</label>
+                <input type="number" id="initial_stock" name="initial_stock" class="form-input" value="{{ old('initial_stock', 0) }}" min="0" placeholder="e.g., 25">
+                <div class="form-hint">Physical on-hand units available for sale (leave 0 if not yet stocked).</div>
+                @error('initial_stock') <div class="form-error">{{ $message }}</div> @enderror
+            </div>
+
+            <div class="form-group">
+                <label for="safety_stock" class="form-label">Safety Stock Threshold</label>
+                <input type="number" id="safety_stock" name="safety_stock" class="form-input" value="{{ old('safety_stock', 3) }}" min="0" placeholder="e.g., 3">
+                <div class="form-hint">Triggers Low Stock alert when available units drop to this level.</div>
+                @error('safety_stock') <div class="form-error">{{ $message }}</div> @enderror
+            </div>
+        </div>
     </div>
 
     <!-- SEO Metadata Component -->

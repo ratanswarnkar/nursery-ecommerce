@@ -61,31 +61,37 @@ class ServiceController extends Controller
                 'title' => 'Garden Landscaping',
                 'description' => 'Complete site layout planning, topographical soil grading, drainage structuring, and climatic botanical curation tailored specifically to Delhi NCR weather.',
                 'icon' => 'garden',
+                'image' => 'images/landscaping/garden-landscaping.jpg',
             ],
             [
                 'title' => 'Residential Landscaping',
                 'description' => 'Customized landscape solutions for private villas, terrace gardens, balcony greening, and courtyard planting to create restorative outdoor living spaces.',
                 'icon' => 'residential',
+                'image' => 'images/landscaping/residential-landscaping.jpg',
             ],
             [
                 'title' => 'Commercial Landscaping',
                 'description' => 'Greenery installations and environmental beautification for corporate offices, hospitality campuses, institutional grounds, and retail developments.',
                 'icon' => 'commercial',
+                'image' => 'images/landscaping/commercial-landscaping.jpg',
             ],
             [
                 'title' => 'Lawn & Garden Development',
                 'description' => 'Healthy natural lawn turf development, ground conditioning, decorative border hedges, pathway greening, and erosion-resistant grass bedding.',
                 'icon' => 'lawn',
+                'image' => 'images/landscaping/lawn-garden-development.jpg',
             ],
             [
                 'title' => 'Planting & Plantation',
                 'description' => 'Direct sourcing, transportation, and root-safe transplanting of mature shade trees, seasonal flower borders, architectural hedges, and fruiting groves.',
                 'icon' => 'planting',
+                'image' => 'images/landscaping/planting-plantation.jpg',
             ],
             [
                 'title' => 'Garden Maintenance',
                 'description' => 'Ongoing horticultural care including seasonal pruning, natural pest prevention, soil re-fertilization, compost aeration, and scheduled irrigation reviews.',
                 'icon' => 'maintenance',
+                'image' => 'images/landscaping/garden-maintenance.jpg',
             ],
         ];
 

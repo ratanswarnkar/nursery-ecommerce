@@ -2,9 +2,13 @@
 
 namespace App\Services\Catalog;
 
+use App\Enums\StockMovementType;
 use App\Models\Admin;
+use App\Models\Inventory;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Models\StockMovement;
+use App\Models\Warehouse;
 use App\Services\Audit\AuditLogger;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -61,7 +65,7 @@ class ProductManagementService
                     ]);
                 }
 
-                ProductVariant::create([
+                $variant = ProductVariant::create([
                     'product_id' => $product->id,
                     'sku' => $product->base_sku,
                     'price' => $initialPrice,
@@ -70,6 +74,41 @@ class ProductManagementService
                     'is_active' => true,
                     'is_default' => true,
                 ]);
+
+                // Initialize inventory record in the default active warehouse (MAIN-WH-01)
+                $defaultWarehouse = Warehouse::where('is_default', true)->where('is_active', true)->first()
+                    ?? Warehouse::where('code', 'MAIN-WH-01')->first()
+                    ?? Warehouse::where('is_active', true)->first();
+
+                if ($defaultWarehouse) {
+                    $initialStock = isset($data['initial_stock']) && $data['initial_stock'] !== ''
+                        ? (int) $data['initial_stock']
+                        : (isset($data['initial_quantity']) && $data['initial_quantity'] !== '' ? (int) $data['initial_quantity'] : 0);
+                    $safetyStock = isset($data['safety_stock']) && $data['safety_stock'] !== ''
+                        ? (int) $data['safety_stock']
+                        : 3;
+
+                    $inventory = Inventory::create([
+                        'product_variant_id' => $variant->id,
+                        'warehouse_id' => $defaultWarehouse->id,
+                        'quantity' => $initialStock,
+                        'reserved_quantity' => 0,
+                        'safety_stock' => $safetyStock,
+                    ]);
+
+                    if ($initialStock > 0) {
+                        StockMovement::create([
+                            'product_variant_id' => $variant->id,
+                            'warehouse_id' => $defaultWarehouse->id,
+                            'type' => StockMovementType::INBOUND,
+                            'quantity' => $initialStock,
+                            'previous_quantity' => 0,
+                            'new_quantity' => $initialStock,
+                            'notes' => 'Opening inventory stock upon product creation',
+                            'created_by' => $admin?->id,
+                        ]);
+                    }
+                }
             }
 
             // Sync SEO

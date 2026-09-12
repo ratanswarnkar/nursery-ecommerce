@@ -65,6 +65,8 @@ class ProductRequest extends FormRequest
                 'max:999999999.99',
                 'regex:/^\d+(\.\d{1,2})?$/',
             ],
+            'initial_stock' => ['nullable', 'integer', 'min:0', 'max:999999'],
+            'safety_stock' => ['nullable', 'integer', 'min:0', 'max:999999'],
 
             // SEO fields
             'meta_title' => ['nullable', 'string', 'max:255'],

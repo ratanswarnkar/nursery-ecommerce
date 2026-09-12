@@ -100,45 +100,45 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @foreach($serviceOfferings as $service)
-                    <div class="bg-white rounded-2xl p-7 border border-slate-200/80 shadow-xs hover:shadow-md hover:border-emerald-300 transition-all flex flex-col justify-between group">
+                    <div class="bg-white rounded-2xl overflow-hidden border border-slate-200/80 shadow-xs hover:shadow-md hover:border-emerald-300 transition-all flex flex-col justify-between group">
                         <div>
-                            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center mb-5 group-hover:bg-emerald-700 group-hover:text-white transition-colors duration-200">
-                                @if($service['icon'] === 'garden')
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582"/>
-                                    </svg>
-                                @elseif($service['icon'] === 'residential')
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-                                    </svg>
-                                @elseif($service['icon'] === 'commercial')
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                                    </svg>
-                                @elseif($service['icon'] === 'lawn')
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
-                                    </svg>
-                                @elseif($service['icon'] === 'planting')
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
-                                    </svg>
-                                @else
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.828 2.828a1 1 0 01-1.414 0L3 12.172a1 1 0 010-1.414l4.95-4.95a1 1 0 011.414 0L12 8.586"/>
-                                    </svg>
-                                @endif
+                            @if(!empty($service['image']))
+                                <div class="relative aspect-video w-full overflow-hidden bg-slate-100">
+                                    <img src="{{ asset($service['image']) }}" 
+                                         alt="{{ $service['title'] }} - Botanical Landscaping Delhi NCR" 
+                                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                         loading="lazy">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent"></div>
+                                    <div class="absolute bottom-3 left-3 w-10 h-10 rounded-lg bg-white/90 backdrop-blur-xs text-emerald-800 flex items-center justify-center shadow-sm">
+                                        @if($service['icon'] === 'garden')
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582"/></svg>
+                                        @elseif($service['icon'] === 'residential')
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                                        @elseif($service['icon'] === 'commercial')
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                        @elseif($service['icon'] === 'lawn')
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+                                        @elseif($service['icon'] === 'planting')
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                                        @else
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.828 2.828a1 1 0 01-1.414 0L3 12.172a1 1 0 010-1.414l4.95-4.95a1 1 0 011.414 0L12 8.586"/></svg>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endif
+
+                            <div class="p-6">
+                                <h3 class="text-lg font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">
+                                    {{ $service['title'] }}
+                                </h3>
+                                <p class="text-xs sm:text-sm text-slate-600 mt-2.5 leading-relaxed">
+                                    {{ $service['description'] }}
+                                </p>
                             </div>
-                            <h3 class="text-lg font-bold text-slate-900 group-hover:text-emerald-700 transition-colors">
-                                {{ $service['title'] }}
-                            </h3>
-                            <p class="text-xs sm:text-sm text-slate-600 mt-2.5 leading-relaxed">
-                                {{ $service['description'] }}
-                            </p>
                         </div>
-                        <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-emerald-700 font-semibold">
-                            <span>Available in Delhi NCR</span>
-                            <a href="{{ route('policy.contact') }}" class="hover:underline flex items-center gap-1">
+                        <div class="px-6 pb-6 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-emerald-700 font-semibold">
+                            <span>Delhi NCR Service Area</span>
+                            <a href="{{ route('policy.contact') }}" class="hover:underline flex items-center gap-1 group-hover:text-emerald-800">
                                 <span>Inquire</span>
                                 <span>&rarr;</span>
                             </a>
