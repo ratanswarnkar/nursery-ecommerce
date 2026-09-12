@@ -5,6 +5,7 @@ namespace Tests\Feature\Catalog;
 use App\Models\Admin;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductImage;
 use App\Models\ProductVariant;
 use App\Services\Order\OrderCalculationService;
 use Database\Seeders\AdminRbacSeeder;
@@ -277,5 +278,31 @@ class StarterProductCatalogTest extends TestCase
 
         $this->assertEquals($initialProductCount, Product::count(), 'Re-running seeder must not change product count.');
         $this->assertEquals($initialVariantCount, ProductVariant::count(), 'Re-running seeder must not change variant count.');
+    }
+
+    public function test_seeder_ensures_categories_and_never_silently_skips_products_when_run_isolated(): void
+    {
+        // Re-running StarterProductCatalogSeeder directly must guarantee all 9 categories and products exist
+        $this->seed(StarterProductCatalogSeeder::class);
+
+        $approvedCategorySlugs = [
+            'indoor-plants',
+            'flowering-plants',
+            'air-purifying',
+            'fruit-plants',
+            'outdoor-plants',
+            'herbal-medicinal-plants',
+            'flowering-saplings',
+            'terracotta-pots',
+            'plant-care',
+        ];
+
+        foreach ($approvedCategorySlugs as $slug) {
+            $this->assertDatabaseHas('categories', ['slug' => $slug]);
+        }
+
+        $this->assertEquals(45, Product::count());
+        $this->assertEquals(45, ProductVariant::count());
+        $this->assertGreaterThan(0, ProductImage::count());
     }
 }

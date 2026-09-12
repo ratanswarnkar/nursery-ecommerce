@@ -22,6 +22,9 @@ class StarterProductCatalogSeeder extends Seeder
      */
     public function run(): void
     {
+        // Ensure approved categories exist before populating products
+        $this->call(ProductCategorySeeder::class);
+
         // 0. Ensure Storage Directory and Assets
         $storageCatalogDir = storage_path('app/public/products/catalog');
         if (! File::isDirectory($storageCatalogDir)) {
