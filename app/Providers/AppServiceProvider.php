@@ -18,6 +18,7 @@ use App\Services\Shipping\ShipmentService;
 use App\Services\Sms\LogSmsSender;
 use App\Services\Sms\NullSmsSender;
 use App\Services\Sms\SmsSenderInterface;
+use App\Services\Sms\WhatsAppSmsSender;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -33,10 +34,11 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(PhoneNumberNormalizer::class);
 
-        $this->app->singleton(SmsSenderInterface::class, function () {
+        $this->app->singleton(SmsSenderInterface::class, function ($app) {
             $driver = config('services.sms.driver', 'log');
 
             return match ($driver) {
+                'whatsapp' => $app->make(WhatsAppSmsSender::class),
                 'null' => new NullSmsSender,
                 default => new LogSmsSender,
             };

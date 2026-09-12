@@ -56,9 +56,15 @@ class OtpService implements OtpServiceInterface
                 'user_agent' => $userAgent,
             ]);
 
-            // 5. Send via SMS abstraction
-            $message = "Your verification code is {$plainOtp}. Valid for 5 minutes. Never share this code.";
-            $this->smsSender->send($phoneE164, $message);
+            // 5. Send via SMS / WhatsApp abstraction
+            $message = "Your Sugandha Farms & Nursery verification code is {$plainOtp}. Valid for 5 minutes. Please do not share this code with anyone.";
+            $sent = $this->smsSender->send($phoneE164, $message);
+
+            if (! $sent) {
+                throw ValidationException::withMessages([
+                    'phone' => ['Failed to send verification code. Please try again.'],
+                ]);
+            }
 
             return $challenge;
         });

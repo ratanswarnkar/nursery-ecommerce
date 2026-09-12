@@ -42,6 +42,22 @@ return [
 
     'sms' => [
         'driver' => env('SMS_DRIVER', 'log'),
+        'whatsapp' => [
+            'api_url' => env('WHATSAPP_OTP_API_URL', 'https://whatsapp.myapi.in.net/send-message'),
+            'api_key' => env('WHATSAPP_OTP_API_KEY'),
+            'sender' => env('WHATSAPP_OTP_SENDER', '919811114365'),
+            'footer' => env('WHATSAPP_OTP_FOOTER'),
+            'timeout' => (int) env('WHATSAPP_OTP_TIMEOUT', 10),
+            'connect_timeout' => (int) env('WHATSAPP_OTP_CONNECT_TIMEOUT', 5),
+        ],
     ],
 
+    'whatsapp' => [
+        'api_url' => env('WHATSAPP_OTP_API_URL', 'https://whatsapp.myapi.in.net/send-message'),
+        'api_key' => env('WHATSAPP_OTP_API_KEY'),
+        'sender' => env('WHATSAPP_OTP_SENDER', '919811114365'),
+        'footer' => env('WHATSAPP_OTP_FOOTER'),
+        'timeout' => (int) env('WHATSAPP_OTP_TIMEOUT', 10),
+        'connect_timeout' => (int) env('WHATSAPP_OTP_CONNECT_TIMEOUT', 5),
+    ],
 ];
